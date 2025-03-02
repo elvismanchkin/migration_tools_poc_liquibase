@@ -1,0 +1,22 @@
+databaseChangeLog:
+  # Include individual migration files in order
+  - include:
+      file: migrations/v1_initial_schema.yaml
+      relativeToChangelogFile: true
+
+  - include:
+      file: migrations/v2_create_audit_tables.yaml
+      relativeToChangelogFile: true
+
+  - include:
+      file: migrations/v3_create_templates_tables.yaml
+      relativeToChangelogFile: true
+
+  - include:
+      file: migrations/v4_add_configuration_tables.yaml
+      relativeToChangelogFile: true
+
+  # Include environment-specific migrations
+  - include:
+      file: migrations/dev/v20250228_add_test_data.yaml
+      relativeToChangelogFile: true

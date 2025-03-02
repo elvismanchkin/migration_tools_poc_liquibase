@@ -1,0 +1,146 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20250228001
+      author: devops
+      comment: Add test data for development environment
+      # Only run in dev environment
+      context: dev
+      # Don't run if test data already exists
+      preConditions:
+        - onFail: MARK_RAN
+          sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM template_service.template WHERE name = 'Test Template'
+      changes:
+        # Insert test templates
+        - insert:
+            tableName: template
+            schemaName: template_service
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "uuid_generate_v4()"
+              - column:
+                  name: name
+                  value: "Test Template"
+              - column:
+                  name: category_id
+                  valueComputed: "(SELECT id FROM template_service.template_category WHERE name = 'Email')"
+              - column:
+                  name: content
+                  value: "<html><body><h1>Test Template</h1><p>Hello, {{name}}!</p></body></html>"
+              - column:
+                  name: format
+                  value: "html"
+              - column:
+                  name: version
+                  value: 1
+              - column:
+                  name: is_active
+                  valueBoolean: true
+              - column:
+                  name: created_by
+                  value: "system"
+
+        # Insert test template variables
+        - sql:
+            dbms: postgresql
+            sql: |
+              INSERT INTO template_service.template_variable (template_id, variable_name, description, default_value, is_required)
+              SELECT 
+                id, 
+                'name', 
+                'Recipient name', 
+                'User', 
+                true
+              FROM template_service.template 
+              WHERE name = 'Test Template';
+
+        # Insert test invoice template
+        - insert:
+            tableName: template
+            schemaName: template_service
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "uuid_generate_v4()"
+              - column:
+                  name: name
+                  value: "Invoice Template"
+              - column:
+                  name: category_id
+                  valueComputed: "(SELECT id FROM template_service.template_category WHERE name = 'Report')"
+              - column:
+                  name: content
+                  value: "<html><body><style>table {border-collapse: collapse; width: 100%;} th, td {border: 1px solid #ddd; padding: 8px; text-align: left;} th {background-color: #f2f2f2;}</style><h1>INVOICE</h1><p><strong>Invoice Date:</strong> {{date}}</p><p><strong>Invoice Number:</strong> {{invoice_number}}</p><h2>Customer Information</h2><p><strong>Name:</strong> {{customer_name}}</p><p><strong>Email:</strong> {{customer_email}}</p><h2>Items</h2><table><tr><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr><tr><td>Product A</td><td>2</td><td>$50.00</td><td>$100.00</td></tr><tr><td>Product B</td><td>1</td><td>$75.00</td><td>$75.00</td></tr></table><h2>Summary</h2><p><strong>Subtotal:</strong> $175.00</p><p><strong>Tax (10%):</strong> $17.50</p><p><strong>Total:</strong> $192.50</p></body></html>"
+              - column:
+                  name: format
+                  value: "html"
+              - column:
+                  name: version
+                  value: 1
+              - column:
+                  name: is_active
+                  valueBoolean: true
+              - column:
+                  name: created_by
+                  value: "system"
+
+        # Insert invoice template variables
+        - sql:
+            dbms: postgresql
+            sql: |
+              INSERT INTO template_service.template_variable (template_id, variable_name, description, default_value, is_required)
+              SELECT 
+                id, 
+                'date', 
+                'Invoice date', 
+                '2023-01-01', 
+                true
+              FROM template_service.template 
+              WHERE name = 'Invoice Template';
+              
+              INSERT INTO template_service.template_variable (template_id, variable_name, description, default_value, is_required)
+              SELECT 
+                id, 
+                'invoice_number', 
+                'Invoice number', 
+                'INV-001', 
+                true
+              FROM template_service.template 
+              WHERE name = 'Invoice Template';
+              
+              INSERT INTO template_service.template_variable (template_id, variable_name, description, default_value, is_required)
+              SELECT 
+                id, 
+                'customer_name', 
+                'Customer name', 
+                'John Doe', 
+                true
+              FROM template_service.template 
+              WHERE name = 'Invoice Template';
+              
+              INSERT INTO template_service.template_variable (template_id, variable_name, description, default_value, is_required)
+              SELECT 
+                id, 
+                'customer_email', 
+                'Customer email', 
+                'john.doe@example.com', 
+                true
+              FROM template_service.template 
+              WHERE name = 'Invoice Template';
+
+        # Add test configuration
+        - insert:
+            tableName: configuration
+            schemaName: template_service
+            columns:
+              - column:
+                  name: config_key
+                  value: "test_mode"
+              - column:
+                  name: config_value
+                  value: "true"
+              - column:
+                  name: description
+                  value: "Enable test mode in development"

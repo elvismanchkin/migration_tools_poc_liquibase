@@ -1,0 +1,324 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: devops
+      comment: Add Configuration Tables
+      # Add preConditions to handle existing database
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                schemaName: template_service
+                tableName: configuration
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: SET search_path TO template_service, public;
+
+        # Create configuration table
+        - createTable:
+            tableName: configuration
+            schemaName: template_service
+            columns:
+              - column:
+                  name: id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: config_key
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: config_value
+                  type: TEXT
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: is_encrypted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_updated_by
+                  type: VARCHAR(100)
+              - column:
+                  name: last_updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Create template_config table
+        - createTable:
+            tableName: template_config
+            schemaName: template_service
+            columns:
+              - column:
+                  name: id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: template_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_template_config_template
+                    references: template_service.template(id)
+                    deleteCascade: true
+              - column:
+                  name: config_key
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: config_value
+                  type: TEXT
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Add unique constraint
+        - addUniqueConstraint:
+            tableName: template_config
+            schemaName: template_service
+            columnNames: template_id, config_key
+            constraintName: uk_template_id_config_key
+
+        # Create rendering_engine table
+        - createTable:
+            tableName: rendering_engine
+            schemaName: template_service
+            columns:
+              - column:
+                  name: id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: engine_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: config
+                  type: JSONB
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Create template_engine_mapping table
+        - createTable:
+            tableName: template_engine_mapping
+            schemaName: template_service
+            columns:
+              - column:
+                  name: template_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_tem_template
+                    references: template_service.template(id)
+                    deleteCascade: true
+              - column:
+                  name: engine_id
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_tem_engine
+                    references: template_service.rendering_engine(id)
+                    deleteCascade: true
+
+        # Create triggers for audit logging
+        - sql:
+            dbms: postgresql
+            sql: |
+              CREATE TRIGGER configuration_audit
+              AFTER INSERT OR UPDATE OR DELETE ON template_service.configuration
+              FOR EACH ROW EXECUTE FUNCTION audit.log_change();
+              
+              CREATE TRIGGER template_config_audit
+              AFTER INSERT OR UPDATE OR DELETE ON template_service.template_config
+              FOR EACH ROW EXECUTE FUNCTION audit.log_change();
+
+        # Add sample configuration data
+        - insert:
+            tableName: configuration
+            schemaName: template_service
+            columns:
+              - column:
+                  name: config_key
+                  value: "default_template_format"
+              - column:
+                  name: config_value
+                  value: "html"
+              - column:
+                  name: description
+                  value: "Default format for new templates"
+
+        - insert:
+            tableName: configuration
+            schemaName: template_service
+            columns:
+              - column:
+                  name: config_key
+                  value: "max_template_size_kb"
+              - column:
+                  name: config_value
+                  value: "512"
+              - column:
+                  name: description
+                  value: "Maximum template size in kilobytes"
+
+        - insert:
+            tableName: configuration
+            schemaName: template_service
+            columns:
+              - column:
+                  name: config_key
+                  value: "enable_template_caching"
+              - column:
+                  name: config_value
+                  value: "true"
+              - column:
+                  name: description
+                  value: "Whether to cache rendered templates"
+
+        - insert:
+            tableName: configuration
+            schemaName: template_service
+            columns:
+              - column:
+                  name: config_key
+                  value: "default_rendering_engine"
+              - column:
+                  name: config_value
+                  value: "freemarker"
+              - column:
+                  name: description
+                  value: "Default template rendering engine"
+
+        # Add sample rendering engines
+        - insert:
+            tableName: rendering_engine
+            schemaName: template_service
+            columns:
+              - column:
+                  name: name
+                  value: "FreeMarker"
+              - column:
+                  name: description
+                  value: "Apache FreeMarker template engine"
+              - column:
+                  name: engine_type
+                  value: "freemarker"
+              - column:
+                  name: config
+                  value: '{"version": "2.3.31", "settings": {"locale": "en_US"}}'
+              - column:
+                  name: is_active
+                  valueBoolean: true
+
+        - insert:
+            tableName: rendering_engine
+            schemaName: template_service
+            columns:
+              - column:
+                  name: name
+                  value: "Velocity"
+              - column:
+                  name: description
+                  value: "Apache Velocity template engine"
+              - column:
+                  name: engine_type
+                  value: "velocity"
+              - column:
+                  name: config
+                  value: '{"version": "2.3", "settings": {"strict_mode": true}}'
+              - column:
+                  name: is_active
+                  valueBoolean: true
+
+        - insert:
+            tableName: rendering_engine
+            schemaName: template_service
+            columns:
+              - column:
+                  name: name
+                  value: "Thymeleaf"
+              - column:
+                  name: description
+                  value: "Thymeleaf template engine"
+              - column:
+                  name: engine_type
+                  value: "thymeleaf"
+              - column:
+                  name: config
+                  value: '{"version": "3.0.15", "settings": {"cache_ttl_ms": 3600000}}'
+              - column:
+                  name: is_active
+                  valueBoolean: true
+
+        # Update system_info
+        - insert:
+            tableName: system_info
+            schemaName: template_service
+            columns:
+              - column:
+                  name: version
+                  value: "1.0.3"
+              - column:
+                  name: description
+                  value: "Added configuration tables and sample data"
+      # Rollback instructions
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: |
+              DROP TRIGGER IF EXISTS configuration_audit ON template_service.configuration;
+              DROP TRIGGER IF EXISTS template_config_audit ON template_service.template_config;
+        - dropTable:
+            tableName: template_engine_mapping
+            schemaName: template_service
+        - dropTable:
+            tableName: rendering_engine
+            schemaName: template_service
+        - dropTable:
+            tableName: template_config
+            schemaName: template_service
+        - dropTable:
+            tableName: configuration
+            schemaName: template_service

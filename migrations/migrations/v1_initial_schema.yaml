@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: devops
+      comment: Initial Schema Creation
+      # Add preConditions to handle existing database
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                schemaName: template_service
+                tableName: system_info
+      changes:
+        # Create extension if not exists is supported by SQL
+        - sql:
+            dbms: postgresql
+            sql: CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+        # Create schema if not exists
+        - sql:
+            dbms: postgresql
+            sql: CREATE SCHEMA IF NOT EXISTS template_service;
+
+        - sql:
+            dbms: postgresql
+            sql: SET search_path TO template_service, public;
+
+        # Create system_info table
+        - createTable:
+            tableName: system_info
+            schemaName: template_service
+            columns:
+              - column:
+                  name: id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: version
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Insert initial version info
+        - insert:
+            tableName: system_info
+            schemaName: template_service
+            columns:
+              - column:
+                  name: version
+                  value: "1.0.0"
+              - column:
+                  name: description
+                  value: "Initial schema creation"
+      # Rollback instructions
+      rollback:
+        - dropTable:
+            tableName: system_info
+            schemaName: template_service
