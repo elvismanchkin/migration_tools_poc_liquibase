@@ -5,18 +5,16 @@ databaseChangeLog:
       comment: Initial Schema Creation
       # Add preConditions to handle existing database
       preConditions:
-        - onFail: MARK_RAN
+        - onFail:
           not:
             - tableExists:
                 schemaName: template_service
                 tableName: system_info
       changes:
-        # Create extension if not exists is supported by SQL
         - sql:
             dbms: postgresql
             sql: CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-        # Create schema if not exists
         - sql:
             dbms: postgresql
             sql: CREATE SCHEMA IF NOT EXISTS template_service;
@@ -25,7 +23,6 @@ databaseChangeLog:
             dbms: postgresql
             sql: SET search_path TO template_service, public;
 
-        # Create system_info table
         - createTable:
             tableName: system_info
             schemaName: template_service
@@ -52,7 +49,6 @@ databaseChangeLog:
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: CURRENT_TIMESTAMP
 
-        # Insert initial version info
         - insert:
             tableName: system_info
             schemaName: template_service
@@ -62,8 +58,7 @@ databaseChangeLog:
                   value: "1.0.0"
               - column:
                   name: description
-                  value: "Initial schema creation"
-      # Rollback instructions
+                  value: "Initial schema"
       rollback:
         - dropTable:
             tableName: system_info

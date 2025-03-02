@@ -1,0 +1,72 @@
+{{define "content"}}
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Rendered Template: {{.Template.Name}}</h1>
+        <div>
+            <a href="/templates/{{.Template.ID}}" class="text-blue-500 hover:underline mr-4">Back to Template</a>
+            <a href="/templates" class="text-blue-500 hover:underline">All Templates</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-2">
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold mb-2">Rendered Output</h2>
+                <div class="border border-gray-300 rounded-md p-4 bg-white min-h-64">
+                    {{.RenderedContent}}
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <form action="/templates/{{.Template.ID}}/pdf" method="POST" class="inline">
+                    {{range $key, $value := .FormValues}}
+                    <input type="hidden" name="{{$key}}" value="{{$value}}">
+                    {{end}}
+                    <button type="submit"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Download as PDF
+                    </button>
+                </form>
+
+                <a href="/templates/{{.Template.ID}}"
+                   class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block">
+                    Edit Variables
+                </a>
+            </div>
+        </div>
+
+        <div class="col-span-1">
+            <div class="bg-blue-50 p-4 rounded-md">
+                <h2 class="text-lg font-semibold mb-4">Variables Used</h2>
+
+                {{if .Variables}}
+                <table class="w-full text-sm">
+                    <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2">Name</th>
+                        <th class="text-left py-2">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{range .Variables}}
+                    <tr class="border-b border-gray-200">
+                        <td class="py-2 font-medium">{{.VariableName}}</td>
+                        <td class="py-2 break-all">
+                            {{with index $.FormValues .VariableName}}
+                            {{.}}
+                            {{else}}
+                            {{.DefaultValue}}
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <p class="text-sm text-gray-600">No variables were used in this template.</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

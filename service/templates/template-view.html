@@ -1,0 +1,124 @@
+{{define "content"}}
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">{{.Template.Name}}</h1>
+        <a href="/templates" class="text-blue-500 hover:underline">Back to Templates</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="col-span-2">
+            <div class="bg-gray-100 p-4 rounded-md mb-6">
+                <h2 class="text-lg font-semibold mb-2">Template Information</h2>
+                <table class="w-full text-sm">
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Category:</td>
+                        <td>{{.Template.CategoryName}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Format:</td>
+                        <td>{{.Template.Format}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Version:</td>
+                        <td>{{.Template.Version}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Created By:</td>
+                        <td>{{.Template.CreatedBy}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Created At:</td>
+                        <td>{{.Template.CreatedAt.Format "Jan 02, 2006 15:04:05"}}</td>
+                    </tr>
+                    {{if .Template.UpdatedAt.IsZero | not}}
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Updated By:</td>
+                        <td>{{.Template.UpdatedBy}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Updated At:</td>
+                        <td>{{.Template.UpdatedAt.Format "Jan 02, 2006 15:04:05"}}</td>
+                    </tr>
+                    {{end}}
+                </table>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold mb-2">Template Content</h2>
+                <div class="bg-gray-800 p-4 rounded-md overflow-x-auto">
+                    <pre class="text-white text-sm"><code>{{.Template.Content}}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-1">
+            <div class="bg-blue-50 p-4 rounded-md mb-6">
+                <h2 class="text-lg font-semibold mb-4">Render Template</h2>
+
+                <form action="/templates/{{.Template.ID}}/render" method="POST" class="space-y-4">
+                    {{if .Variables}}
+                    <div class="space-y-3">
+                        {{range .Variables}}
+                        <div>
+                            <label for="{{.VariableName}}" class="block text-sm font-medium text-gray-700">
+                                {{.VariableName}}
+                                {{if .IsRequired}}<span class="text-red-500">*</span>{{end}}
+                            </label>
+                            <input type="text" id="{{.VariableName}}" name="{{.VariableName}}"
+                                   value="{{.DefaultValue}}" {{if .IsRequired}}required{{end}}
+                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            {{if .Description}}
+                            <p class="mt-1 text-xs text-gray-500">{{.Description}}</p>
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <button type="submit"
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Render
+                        </button>
+                        <button type="submit" formaction="/templates/{{.Template.ID}}/pdf"
+                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                            Generate PDF
+                        </button>
+                    </div>
+                    {{else}}
+                    <p class="text-sm text-gray-600">This template has no variables defined.</p>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Render
+                    </button>
+                    {{end}}
+                </form>
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded-md">
+                <h2 class="text-lg font-semibold mb-2">Variables</h2>
+                {{if .Variables}}
+                <table class="w-full text-sm">
+                    <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2">Name</th>
+                        <th class="text-left py-2">Required</th>
+                        <th class="text-left py-2">Default</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{range .Variables}}
+                    <tr class="border-b border-gray-200">
+                        <td class="py-2">{{.VariableName}}</td>
+                        <td class="py-2">{{if .IsRequired}}Yes{{else}}No{{end}}</td>
+                        <td class="py-2 break-all">{{.DefaultValue}}</td>
+                    </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <p class="text-sm text-gray-600">No variables defined for this template.</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

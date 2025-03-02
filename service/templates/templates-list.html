@@ -1,0 +1,44 @@
+{{define "content"}}
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Templates</h1>
+        <a href="/templates/new" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Add New Template
+        </a>
+    </div>
+
+    <div class="mb-4">
+        <h2 class="text-xl font-semibold mb-2">Categories</h2>
+        <div class="flex flex-wrap gap-2">
+            {{range .Categories}}
+            <span class="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
+                {{.Name}}
+            </span>
+            {{end}}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {{range .Templates}}
+        <div class="template-card bg-white border rounded-lg overflow-hidden shadow hover:shadow-lg">
+            <div class="bg-blue-100 px-4 py-2">
+                <h2 class="text-lg font-semibold text-blue-800 truncate">{{.Name}}</h2>
+                <p class="text-sm text-blue-600">{{.CategoryName}}</p>
+            </div>
+            <div class="p-4">
+                <p class="text-sm text-gray-600 mb-2">Format: <span class="font-semibold">{{.Format}}</span></p>
+                <p class="text-sm text-gray-600 mb-2">Created: <span class="font-semibold">{{.CreatedAt.Format "Jan 02, 2006"}}</span></p>
+                <p class="text-sm text-gray-600 mb-4">Version: <span class="font-semibold">{{.Version}}</span></p>
+                <a href="/templates/{{.ID}}" class="block text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    View Template
+                </a>
+            </div>
+        </div>
+        {{else}}
+        <div class="col-span-3 text-center py-8">
+            <p class="text-gray-500 text-lg">No templates found. <a href="/templates/new" class="text-blue-500 hover:underline">Create one now</a>.</p>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

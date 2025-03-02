@@ -52,9 +52,9 @@ COPY --from=builder /app/static/ /app/static/
 # Copy the binary from the builder stage
 COPY --from=builder /app/template-service /app/
 
-# Create entrypoint script to wait for database
-RUN echo '#!/bin/sh\nset -e\n\necho "Waiting for database to be ready..."\nuntil pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME; do\n  echo "Database not ready yet, waiting..."\n  sleep 2\ndone\n\necho "Database is ready!"\necho "Starting template service..."\nexec /app/template-service\n' > /app/entrypoint.sh && \
-    chmod +x /app/entrypoint.sh
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Verify wkhtmltopdf installation
 RUN wkhtmltopdf --version
