@@ -5,6 +5,8 @@ databaseChangeLog:
       comment: Add test data for development environment
       # Only run in dev environment
       context: dev
+      # Force run this changeset every time
+      runAlways: true
       # Don't run if test data already exists
       preConditions:
         - onFail: MARK_RAN
@@ -27,7 +29,7 @@ databaseChangeLog:
                   valueComputed: "(SELECT id FROM template_service.template_category WHERE name = 'Email')"
               - column:
                   name: content
-                  value: "<html><body><h1>Test Template</h1><p>Hello, {{name}}!</p></body></html>"
+                  value: "<html><body><h1>Test Template</h1><p>Hello, {{.name}}!</p></body></html>"
               - column:
                   name: format
                   value: "html"

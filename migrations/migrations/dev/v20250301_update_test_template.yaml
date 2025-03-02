@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20250301001
+      author: devops
+      comment: Update test template with more detailed content
+      context: dev
+      runAlways: true
+      preConditions:
+        - onFail: MARK_RAN
+          sqlCheck:
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM template_service.template WHERE name = 'Test Template'
+      changes:
+        # Update the template content
+        - update:
+            tableName: template
+            schemaName: template_service
+            where: "name = 'Test Template'"
+            columns:
+              - column:
+                  name: content
+                  value: |
+                    <html>
+                    <body>
+                      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+                        <h1 style="color: #333;">Hello, {{.name}}!</h1>
+                        <p>This is a test template demonstrating dynamic content generation.</p>
+                        <div style="background-color: #f4f4f4; padding: 10px; margin-top: 20px;">
+                          <h2>Details:</h2>
+                          <ul>
+                            <li><strong>Name:</strong> {{.name}}</li>
+                            <li><strong>Date:</strong> {{.date}}</li>
+                            <li><strong>Custom Message:</strong> {{.message}}</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </body>
+                    </html>
+
+        # Add new variables for the updated template
+        - sql:
+            dbms: postgresql
+            sql: |
+              -- Delete existing variables
+              DELETE FROM template_service.template_variable 
+              WHERE template_id = (SELECT id FROM template_service.template WHERE name = 'Test Template');
+              
+              -- Insert new variables with the updated template
+              WITH template_uuid AS (
+                SELECT id FROM template_service.template WHERE name = 'Test Template'
+              )
+              INSERT INTO template_service.template_variable (
+                template_id, 
+                variable_name, 
+                description, 
+                default_value, 
+                is_required
+              ) VALUES 
+              ((SELECT id FROM template_uuid), 'name', 'Recipient name', 'User', true),
+              ((SELECT id FROM template_uuid), 'date', 'Current date', CURRENT_DATE::text, false),
+              ((SELECT id FROM template_uuid), 'message', 'Custom greeting message', 'Welcome to our template system!', false);
