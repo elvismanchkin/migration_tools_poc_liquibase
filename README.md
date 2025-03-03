@@ -48,7 +48,7 @@ template-system/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/template-system.git
+git clone https://github.com/template-system.git
 cd template-system
 
 # Start all services
