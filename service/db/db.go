@@ -8,9 +8,12 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var DB *sql.DB
+var GORMDB *gorm.DB
 
 func WaitForDatabase() {
 	host := getEnv("DB_HOST", "localhost")
@@ -33,7 +36,7 @@ func WaitForDatabase() {
 				log.Println("Database is ready!")
 				err := db.Close()
 				if err != nil {
-					return
+					log.Printf("Error closing database connection: %v", err)
 				}
 				return
 			}
@@ -67,6 +70,23 @@ func SetupDatabase() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
+	// Initialize GORM
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	gormDB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Error connecting to database with GORM: %v", err)
+	}
+
+	// Set default schema for GORM
+	schema := getEnv("DB_SCHEMA", "template_service")
+	err = gormDB.Exec(fmt.Sprintf("SET search_path TO %s, public", schema)).Error
+	if err != nil {
+		log.Fatalf("Error setting search path: %v", err)
+	}
+
+	GORMDB = gormDB
 	log.Println("Connected to database")
 }
 

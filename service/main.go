@@ -12,6 +12,7 @@ import (
 
 	"github.com/yourusername/template-service/db"
 	"github.com/yourusername/template-service/handlers"
+	"github.com/yourusername/template-service/models"
 )
 
 //go:embed templates/*
@@ -32,9 +33,21 @@ func main() {
 	defer func(DB *sql.DB) {
 		err := DB.Close()
 		if err != nil {
-			print(err)
+			log.Printf("Error closing SQL DB: %v", err)
 		}
 	}(db.DB)
+
+	// Auto migrate GORM models
+	log.Println("Auto-migrating models...")
+	err = db.GORMDB.AutoMigrate(
+		&models.TemplateCategory{},
+		&models.Template{},
+		&models.TemplateVariable{},
+	)
+
+	if err != nil {
+		log.Printf("Warning: Auto migration failed: %v", err)
+	}
 
 	handlers.FS = templateFS
 	router := mux.NewRouter()

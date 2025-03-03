@@ -1,205 +1,125 @@
 package models
 
 import (
-	"database/sql"
-	"log"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/yourusername/template-service/db"
 )
 
-// Template struct to match the database schema
+// Template struct with GORM tags
 type Template struct {
-	ID           string
-	Name         string
-	CategoryID   int
-	Content      string
-	Format       string
-	Version      int
-	IsActive     bool
-	CreatedBy    string
-	CreatedAt    time.Time
-	UpdatedBy    string
-	UpdatedAt    time.Time
-	CategoryName string // Joined from category table
+	ID           string           `gorm:"type:uuid;primaryKey" json:"id"`
+	Name         string           `gorm:"size:200;not null" json:"name"`
+	CategoryID   int              `gorm:"not null" json:"category_id"`
+	Content      string           `gorm:"type:text;not null" json:"content"`
+	Format       string           `gorm:"size:50;not null;default:html" json:"format"`
+	Version      int              `gorm:"not null;default:1" json:"version"`
+	IsActive     bool             `gorm:"not null;default:true" json:"is_active"`
+	CreatedBy    string           `gorm:"size:100;not null" json:"created_by"`
+	CreatedAt    time.Time        `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedBy    string           `gorm:"size:100" json:"updated_by"`
+	UpdatedAt    time.Time        `gorm:"autoUpdateTime" json:"updated_at"`
+	Category     TemplateCategory `gorm:"foreignKey:CategoryID" json:"-"`
+	CategoryName string           `gorm:"-" json:"category_name"`
 }
 
 // TemplateVariable for template parameters
 type TemplateVariable struct {
-	ID           int
-	TemplateID   string
-	VariableName string
-	Description  string
-	DefaultValue string
-	IsRequired   bool
-	VariableType string
+	ID           int    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TemplateID   string `gorm:"type:uuid;not null" json:"template_id"`
+	VariableName string `gorm:"size:100;not null" json:"variable_name"`
+	Description  string `gorm:"type:text" json:"description"`
+	DefaultValue string `gorm:"type:text" json:"default_value"`
+	IsRequired   bool   `gorm:"not null;default:false" json:"is_required"`
+	VariableType string `gorm:"size:50;not null;default:string" json:"variable_type"`
 }
 
 // TemplateCategory represents a template category
 type TemplateCategory struct {
-	ID          int
-	Name        string
-	Description string
+	ID          int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name        string    `gorm:"size:100;not null;uniqueIndex" json:"name"`
+	Description string    `gorm:"type:text" json:"description"`
+	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+}
+
+// TableName sets the table name for Template
+func (Template) TableName() string {
+	return "template_service.template"
+}
+
+// TableName sets the table name for TemplateVariable
+func (TemplateVariable) TableName() string {
+	return "template_service.template_variable"
+}
+
+// TableName sets the table name for TemplateCategory
+func (TemplateCategory) TableName() string {
+	return "template_service.template_category"
 }
 
 // GetTemplates returns all templates
 func GetTemplates() ([]Template, error) {
-	rows, err := db.DB.Query(`
-		SELECT 
-			t.id, t.name, t.category_id, t.content, t.format, 
-			t.version, t.is_active, t.created_by, t.created_at, 
-			t.updated_by, t.updated_at, c.name as category_name
-		FROM template_service.template t
-		JOIN template_service.template_category c ON t.category_id = c.id
-		WHERE t.is_active = true
-		ORDER BY t.created_at DESC
-	`)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("Error closing rows: %v", closeErr)
-		}
-	}()
-
 	var templates []Template
-	for rows.Next() {
-		var t Template
-		var updatedBy sql.NullString
-		var updatedAt sql.NullTime
+	result := db.GORMDB.Preload("Category").Where("is_active = ?", true).Order("created_at DESC").Find(&templates)
 
-		err := rows.Scan(
-			&t.ID, &t.Name, &t.CategoryID, &t.Content, &t.Format,
-			&t.Version, &t.IsActive, &t.CreatedBy, &t.CreatedAt,
-			&updatedBy, &updatedAt, &t.CategoryName,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if updatedBy.Valid {
-			t.UpdatedBy = updatedBy.String
-		}
-		if updatedAt.Valid {
-			t.UpdatedAt = updatedAt.Time
-		}
-
-		templates = append(templates, t)
+	// Set CategoryName from the preloaded Category
+	for i := range templates {
+		templates[i].CategoryName = templates[i].Category.Name
 	}
 
-	return templates, nil
+	return templates, result.Error
 }
 
 func GetTemplateByID(id string) (Template, error) {
-	var t Template
-	var updatedBy sql.NullString
-	var updatedAt sql.NullTime
+	var template Template
+	result := db.GORMDB.Preload("Category").Where("id = ?", id).First(&template)
 
-	err := db.DB.QueryRow(`
-		SELECT 
-			t.id, t.name, t.category_id, t.content, t.format, 
-			t.version, t.is_active, t.created_by, t.created_at, 
-			t.updated_by, t.updated_at, c.name as category_name
-		FROM template_service.template t
-		JOIN template_service.template_category c ON t.category_id = c.id
-		WHERE t.id = $1
-	`, id).Scan(
-		&t.ID, &t.Name, &t.CategoryID, &t.Content, &t.Format,
-		&t.Version, &t.IsActive, &t.CreatedBy, &t.CreatedAt,
-		&updatedBy, &updatedAt, &t.CategoryName,
-	)
-
-	if err != nil {
-		return t, err
+	// Set CategoryName from the preloaded Category
+	if result.Error == nil {
+		template.CategoryName = template.Category.Name
 	}
 
-	if updatedBy.Valid {
-		t.UpdatedBy = updatedBy.String
-	}
-	if updatedAt.Valid {
-		t.UpdatedAt = updatedAt.Time
-	}
-
-	return t, nil
+	return template, result.Error
 }
 
 func GetTemplateVariables(templateID string) ([]TemplateVariable, error) {
-	rows, err := db.DB.Query(`
-		SELECT 
-			id, template_id, variable_name, description, 
-			default_value, is_required, variable_type
-		FROM template_service.template_variable
-		WHERE template_id = $1
-		ORDER BY id
-	`, templateID)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("Error closing rows: %v", closeErr)
-		}
-	}()
-
 	var variables []TemplateVariable
-	for rows.Next() {
-		var v TemplateVariable
-		if err := rows.Scan(&v.ID, &v.TemplateID, &v.VariableName, &v.Description,
-			&v.DefaultValue, &v.IsRequired, &v.VariableType); err != nil {
-			return nil, err
-		}
-		variables = append(variables, v)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return variables, nil
+	result := db.GORMDB.Where("template_id = ?", templateID).Order("id").Find(&variables)
+	return variables, result.Error
 }
 
 func GetTemplateCategories() ([]TemplateCategory, error) {
-	rows, err := db.DB.Query(`
-		SELECT id, name, description
-		FROM template_service.template_category
-		ORDER BY name
-	`)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("Error closing rows: %v", closeErr)
-		}
-	}()
-
 	var categories []TemplateCategory
-	for rows.Next() {
-		var c TemplateCategory
-		err := rows.Scan(&c.ID, &c.Name, &c.Description)
-		if err != nil {
-			return nil, err
-		}
-
-		categories = append(categories, c)
-	}
-
-	return categories, nil
+	result := db.GORMDB.Order("name").Find(&categories)
+	return categories, result.Error
 }
 
 // CreateTemplate adds a new template to the database
-func CreateTemplate(name, categoryID, content, format, createdBy string) (string, error) {
-	// Create new template in database
+func CreateTemplate(name, categoryIDStr, content, format, createdBy string) (string, error) {
 	templateID := uuid.New().String()
-	_, err := db.DB.Exec(`
-		INSERT INTO template_service.template 
-		(id, name, category_id, content, format, version, is_active, created_by) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		templateID, name, categoryID, content, format, 1, true, createdBy)
 
+	categoryID, err := strconv.Atoi(categoryIDStr)
 	if err != nil {
 		return "", err
+	}
+
+	template := Template{
+		ID:         templateID,
+		Name:       name,
+		CategoryID: categoryID,
+		Content:    content,
+		Format:     format,
+		Version:    1,
+		IsActive:   true,
+		CreatedBy:  createdBy,
+	}
+
+	result := db.GORMDB.Create(&template)
+	if result.Error != nil {
+		return "", result.Error
 	}
 
 	return templateID, nil
@@ -207,38 +127,50 @@ func CreateTemplate(name, categoryID, content, format, createdBy string) (string
 
 // AddTemplateVariable adds a variable to a template
 func AddTemplateVariable(templateID, variableName, description, defaultValue string, isRequired bool) error {
-	_, err := db.DB.Exec(`
-		INSERT INTO template_service.template_variable 
-		(template_id, variable_name, description, default_value, is_required) 
-		VALUES ($1, $2, $3, $4, $5)`,
-		templateID, variableName, description, defaultValue, isRequired)
+	variable := TemplateVariable{
+		TemplateID:   templateID,
+		VariableName: variableName,
+		Description:  description,
+		DefaultValue: defaultValue,
+		IsRequired:   isRequired,
+		VariableType: "string", // Default
+	}
 
-	return err
+	result := db.GORMDB.Create(&variable)
+	return result.Error
 }
 
 // UpdateTemplate updates an existing template
-func UpdateTemplate(id, name, categoryID, content, format, updatedBy string) error {
-	_, err := db.DB.Exec(`
-		UPDATE template_service.template 
-		SET name = $1, category_id = $2, content = $3, format = $4, 
-		    updated_by = $5, updated_at = CURRENT_TIMESTAMP, version = version + 1
-		WHERE id = $6`,
-		name, categoryID, content, format, updatedBy, id)
-
+func UpdateTemplate(id, name, categoryIDStr, content, format, updatedBy string) error {
+	categoryID, err := strconv.Atoi(categoryIDStr)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	// First get the template to increment version
+	var template Template
+	if err := db.GORMDB.First(&template, "id = ?", id).Error; err != nil {
+		return err
+	}
+
+	// Update the template
+	result := db.GORMDB.Model(&Template{ID: id}).Updates(map[string]interface{}{
+		"name":        name,
+		"category_id": categoryID,
+		"content":     content,
+		"format":      format,
+		"updated_by":  updatedBy,
+		"version":     template.Version + 1,
+	})
+
+	return result.Error
 }
 
 // DeleteTemplate marks a template as inactive
 func DeleteTemplate(id string) error {
-	_, err := db.DB.Exec(`
-		UPDATE template_service.template 
-		SET is_active = false, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $1`,
-		id)
+	result := db.GORMDB.Model(&Template{ID: id}).Updates(map[string]interface{}{
+		"is_active": false,
+	})
 
-	return err
+	return result.Error
 }
