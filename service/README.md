@@ -79,3 +79,38 @@ The service can be configured using environment variables or a `.env` file:
 - `POST /templates/{id}/render` - Render a template with variables
 - `POST /templates/{id}/pdf` - Generate a PDF from a template
 - `GET /health` - Health check endpoint
+
+## REST API Endpoints
+
+The service provides a REST API for programmatic access:
+
+- `GET /api/health` - API health check
+- `GET /api/templates` - List all templates
+- `POST /api/templates` - Create a new template
+- `GET /api/templates/{id}` - Get a specific template
+- `PUT /api/templates/{id}` - Update a template
+- `DELETE /api/templates/{id}` - Delete a template
+- `GET /api/templates/{id}/variables` - Get template variables
+- `POST /api/templates/{id}/variables` - Add a variable to a template
+- `POST /api/templates/{id}/render` - Render a template with variables
+- `GET /api/categories` - List all template categories
+
+All API endpoints return JSON responses with a standard format:
+
+```json
+{
+    "success": true,
+    "data": {
+        "some": "data"
+    }
+}
+```
+
+Or in case of error:
+
+```json
+{
+  "success": false,
+  "error": "Error message"
+}
+```

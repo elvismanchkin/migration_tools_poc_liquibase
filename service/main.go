@@ -48,6 +48,9 @@ func main() {
 	// Serve static files
 	router.PathPrefix("/static/").Handler(http.FileServer(http.FS(staticFS)))
 
+	// Create API subrouter
+	apiRouter := router.PathPrefix("/api").Subrouter()
+
 	// Set up routes
 	router.HandleFunc("/", handlers.HandleIndex)
 	router.HandleFunc("/templates", handlers.HandleListTemplates)
@@ -57,11 +60,29 @@ func main() {
 	router.HandleFunc("/templates/{id}/render", handlers.HandleRenderTemplate).Methods("POST")
 	router.HandleFunc("/templates/{id}/pdf", handlers.HandleGeneratePDF).Methods("POST")
 
-	// Health check endpoint
+	// Web UI Health check endpoint
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
-	})
+	}).Methods("GET")
+
+	// API Routes
+	apiRouter.HandleFunc("/health", handlers.APIHealthCheck).Methods("GET")
+
+	// Templates API
+	apiRouter.HandleFunc("/templates", handlers.APIGetTemplates).Methods("GET")
+	apiRouter.HandleFunc("/templates", handlers.APICreateTemplate).Methods("POST")
+	apiRouter.HandleFunc("/templates/{id}", handlers.APIGetTemplate).Methods("GET")
+	apiRouter.HandleFunc("/templates/{id}", handlers.APIUpdateTemplate).Methods("PUT")
+	apiRouter.HandleFunc("/templates/{id}", handlers.APIDeleteTemplate).Methods("DELETE")
+	apiRouter.HandleFunc("/templates/{id}/render", handlers.APIRenderTemplate).Methods("POST")
+
+	// Template Variables API
+	apiRouter.HandleFunc("/templates/{id}/variables", handlers.APIGetTemplateVariables).Methods("GET")
+	apiRouter.HandleFunc("/templates/{id}/variables", handlers.APIAddTemplateVariable).Methods("POST")
+
+	// Categories API
+	apiRouter.HandleFunc("/categories", handlers.APIGetCategories).Methods("GET")
 
 	// Start the server
 	port := getEnv("SERVER_PORT", "8080")
