@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS builder
+FROM golang:alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache git
 COPY go.mod ./
@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o template-serv
 
 FROM surnet/alpine-wkhtmltopdf:3.21.2-0.12.6-small AS wkhtmltopdf
 
-FROM alpine:3.17
+FROM alpine
 WORKDIR /app
 RUN apk add --no-cache \
     libstdc++ libx11 libxrender libxext \

@@ -4,8 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	ent "github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated"
-
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent"
 	"log"
 	"os"
 	"time"

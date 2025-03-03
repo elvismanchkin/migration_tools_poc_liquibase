@@ -6,9 +6,9 @@ import (
 
 	"github.com/elvismanchkin/migration_tools_poc_liquibase/db"
 	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent"
-	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated/template"
-	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated/templatecategory"
-	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated/templatevariable"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent/template"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent/templatecategory"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent/templatevariable"
 	"github.com/google/uuid"
 )
 

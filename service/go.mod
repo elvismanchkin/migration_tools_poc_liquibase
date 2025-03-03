@@ -2,8 +2,6 @@ module github.com/elvismanchkin/migration_tools_poc_liquibase
 
 go 1.23
 
-toolchain go1.24.0
-
 require (
 	entgo.io/ent v0.14.3
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
