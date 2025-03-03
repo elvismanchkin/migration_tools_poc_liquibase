@@ -206,3 +206,30 @@ func AddTemplateVariable(templateID, variableName, description, defaultValue str
 
 	return err
 }
+
+// UpdateTemplate updates an existing template
+func UpdateTemplate(id, name, categoryID, content, format, updatedBy string) error {
+	_, err := db.DB.Exec(`
+		UPDATE template_service.template 
+		SET name = $1, category_id = $2, content = $3, format = $4, 
+		    updated_by = $5, updated_at = CURRENT_TIMESTAMP, version = version + 1
+		WHERE id = $6`,
+		name, categoryID, content, format, updatedBy, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteTemplate marks a template as inactive
+func DeleteTemplate(id string) error {
+	_, err := db.DB.Exec(`
+		UPDATE template_service.template 
+		SET is_active = false, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $1`,
+		id)
+
+	return err
+}
