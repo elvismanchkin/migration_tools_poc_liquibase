@@ -12,7 +12,9 @@ FROM alpine
 WORKDIR /app
 RUN apk add --no-cache \
     libstdc++ libx11 libxrender libxext \
-    ca-certificates fontconfig freetype \
+    ca-certificates fontconfig freetype dbus \
+    ttf-dejavu ttf-droid ttf-freefont \
+    fontconfig freetype xvfb \
     ttf-liberation ttf-opensans \
     postgresql-client xvfb
 

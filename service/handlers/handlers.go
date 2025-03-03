@@ -234,8 +234,93 @@ func HandleRenderTemplate(w http.ResponseWriter, r *http.Request) {
 		FormValues:      varMap,
 	}
 
+	// Choose the template to render based on the format
+	var templatePath string
+	if tmpl.Format == "html" {
+		// For HTML templates, show a PDF-style preview
+		templatePath = "templates/template-pdf-preview.html"
+	} else {
+		// For other formats, use the standard rendered view
+		templatePath = "templates/template-rendered.html"
+	}
+
 	// Load and parse the page template
-	htmlTemplate, err := template.ParseFS(FS, "templates/layout.html", "templates/template-rendered.html")
+	htmlTemplate, err := template.ParseFS(FS, "templates/layout.html", templatePath)
+	if err != nil {
+		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Render the page template
+	err = htmlTemplate.ExecuteTemplate(w, "layout", data)
+	if err != nil {
+		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// HandlePreviewPDF shows a preview of what the PDF will look like
+func HandlePreviewPDF(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	tmpl, err := models.GetTemplateByID(id)
+	if err != nil {
+		http.Error(w, "Error fetching template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get all variables for this template
+	variables, err := models.GetTemplateVariables(id)
+	if err != nil {
+		http.Error(w, "Error fetching template variables: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Build variable map for template rendering
+	varMap := make(map[string]interface{})
+	for _, v := range variables {
+		value := r.FormValue(v.VariableName)
+		if value == "" {
+			value = v.DefaultValue
+		}
+		varMap[v.VariableName] = value
+	}
+
+	// Render the template to a string
+	var renderedBuffer bytes.Buffer
+	htmlTmpl, err := template.New("render").Parse(tmpl.Content)
+	if err != nil {
+		http.Error(w, "Error parsing template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = htmlTmpl.Execute(&renderedBuffer, varMap)
+	if err != nil {
+		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create data for the HTML template
+	data := struct {
+		Template        models.Template
+		Variables       []models.TemplateVariable
+		RenderedContent template.HTML
+		FormValues      map[string]interface{}
+	}{
+		Template:        tmpl,
+		Variables:       variables,
+		RenderedContent: template.HTML(renderedBuffer.String()),
+		FormValues:      varMap,
+	}
+
+	// Load and parse the page template
+	htmlTemplate, err := template.ParseFS(FS, "templates/layout.html", "templates/template-pdf-preview.html")
 	if err != nil {
 		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -297,6 +382,15 @@ func HandleGeneratePDF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pdfGen, err := wkhtmltopdf.NewPDFGenerator()
+
+	// Configure PDF generation for better text/table display
+	pdfGen.Dpi.Set(300)
+	pdfGen.Orientation.Set(wkhtmltopdf.OrientationPortrait)
+	pdfGen.MarginTop.Set(20)
+	pdfGen.MarginBottom.Set(20)
+	pdfGen.MarginLeft.Set(20)
+	pdfGen.MarginRight.Set(20)
+
 	if err != nil {
 		http.Error(w, "Error creating PDF generator: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -304,9 +398,6 @@ func HandleGeneratePDF(w http.ResponseWriter, r *http.Request) {
 
 	page := wkhtmltopdf.NewPageReader(strings.NewReader(renderedBuffer.String()))
 	pdfGen.AddPage(page)
-
-	pdfGen.Orientation.Set(wkhtmltopdf.OrientationPortrait)
-	pdfGen.Dpi.Set(300)
 
 	err = pdfGen.Create()
 	if err != nil {
