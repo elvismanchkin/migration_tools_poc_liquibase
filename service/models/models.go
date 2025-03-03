@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/yourusername/template-service/db"
 )
@@ -45,16 +46,16 @@ type TemplateCategory struct {
 
 // GetTemplates returns all templates
 func GetTemplates() ([]Template, error) {
-	rows, err := db.DB.Query(`
-		SELECT 
-			t.id, t.name, t.category_id, t.content, t.format, 
-			t.version, t.is_active, t.created_by, t.created_at, 
-			t.updated_by, t.updated_at, c.name as category_name
-		FROM template_service.template t
-		JOIN template_service.template_category c ON t.category_id = c.id
-		WHERE t.is_active = true
-		ORDER BY t.created_at DESC
-	`)
+	query := db.StatementBuilder.
+		Select("t.id", "t.name", "t.category_id", "t.content", "t.format",
+			"t.version", "t.is_active", "t.created_by", "t.created_at",
+			"t.updated_by", "t.updated_at", "c.name as category_name").
+		From("template_service.template t").
+		Join("template_service.template_category c ON t.category_id = c.id").
+		Where(sq.Eq{"t.is_active": true}).
+		OrderBy("t.created_at DESC")
+
+	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +98,15 @@ func GetTemplateByID(id string) (Template, error) {
 	var updatedBy sql.NullString
 	var updatedAt sql.NullTime
 
-	err := db.DB.QueryRow(`
-		SELECT 
-			t.id, t.name, t.category_id, t.content, t.format, 
-			t.version, t.is_active, t.created_by, t.created_at, 
-			t.updated_by, t.updated_at, c.name as category_name
-		FROM template_service.template t
-		JOIN template_service.template_category c ON t.category_id = c.id
-		WHERE t.id = $1
-	`, id).Scan(
+	query := db.StatementBuilder.
+		Select("t.id", "t.name", "t.category_id", "t.content", "t.format",
+			"t.version", "t.is_active", "t.created_by", "t.created_at",
+			"t.updated_by", "t.updated_at", "c.name as category_name").
+		From("template_service.template t").
+		Join("template_service.template_category c ON t.category_id = c.id").
+		Where(sq.Eq{"t.id": id})
+
+	err := db.QueryRow(query).Scan(
 		&t.ID, &t.Name, &t.CategoryID, &t.Content, &t.Format,
 		&t.Version, &t.IsActive, &t.CreatedBy, &t.CreatedAt,
 		&updatedBy, &updatedAt, &t.CategoryName,
@@ -126,14 +127,14 @@ func GetTemplateByID(id string) (Template, error) {
 }
 
 func GetTemplateVariables(templateID string) ([]TemplateVariable, error) {
-	rows, err := db.DB.Query(`
-		SELECT 
-			id, template_id, variable_name, description, 
-			default_value, is_required, variable_type
-		FROM template_service.template_variable
-		WHERE template_id = $1
-		ORDER BY id
-	`, templateID)
+	query := db.StatementBuilder.
+		Select("id", "template_id", "variable_name", "description",
+			"default_value", "is_required", "variable_type").
+		From("template_service.template_variable").
+		Where(sq.Eq{"template_id": templateID}).
+		OrderBy("id")
+
+	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -160,11 +161,12 @@ func GetTemplateVariables(templateID string) ([]TemplateVariable, error) {
 }
 
 func GetTemplateCategories() ([]TemplateCategory, error) {
-	rows, err := db.DB.Query(`
-		SELECT id, name, description
-		FROM template_service.template_category
-		ORDER BY name
-	`)
+	query := db.StatementBuilder.
+		Select("id", "name", "description").
+		From("template_service.template_category").
+		OrderBy("name")
+
+	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -190,14 +192,14 @@ func GetTemplateCategories() ([]TemplateCategory, error) {
 
 // CreateTemplate adds a new template to the database
 func CreateTemplate(name, categoryID, content, format, createdBy string) (string, error) {
-	// Create new template in database
 	templateID := uuid.New().String()
-	_, err := db.DB.Exec(`
-		INSERT INTO template_service.template 
-		(id, name, category_id, content, format, version, is_active, created_by) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		templateID, name, categoryID, content, format, 1, true, createdBy)
 
+	query := db.StatementBuilder.
+		Insert("template_service.template").
+		Columns("id", "name", "category_id", "content", "format", "version", "is_active", "created_by").
+		Values(templateID, name, categoryID, content, format, 1, true, createdBy)
+
+	_, err := db.Exec(query)
 	if err != nil {
 		return "", err
 	}
@@ -207,28 +209,34 @@ func CreateTemplate(name, categoryID, content, format, createdBy string) (string
 
 // AddTemplateVariable adds a variable to a template
 func AddTemplateVariable(templateID, variableName, description, defaultValue string, isRequired bool) error {
-	_, err := db.DB.Exec(`
-		INSERT INTO template_service.template_variable 
-		(template_id, variable_name, description, default_value, is_required) 
-		VALUES ($1, $2, $3, $4, $5)`,
-		templateID, variableName, description, defaultValue, isRequired)
+	query := db.StatementBuilder.
+		Insert("template_service.template_variable").
+		Columns("template_id", "variable_name", "description", "default_value", "is_required").
+		Values(templateID, variableName, description, defaultValue, isRequired)
+
+	_, err := db.Exec(query)
 
 	return err
 }
 
 // UpdateTemplate updates an existing template
 func UpdateTemplate(id, name, categoryID, content, format, updatedBy string) error {
-	_, err := db.DB.Exec(`
-		UPDATE template_service.template 
-		SET name = $1, category_id = $2, content = $3, format = $4, 
-		    updated_by = $5, updated_at = CURRENT_TIMESTAMP, version = version + 1
-		WHERE id = $6`,
-		name, categoryID, content, format, updatedBy, id)
+	query := db.StatementBuilder.
+		Update("template_service.template").
+		Set("name", name).
+		Set("category_id", categoryID).
+		Set("content", content).
+		Set("format", format).
+		Set("updated_by", updatedBy).
+		Set("updated_at", sq.Expr("CURRENT_TIMESTAMP")).
+		Set("version", sq.Expr("version + 1")).
+		Where(sq.Eq{"id": id})
+
+	_, err := db.Exec(query)
 
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

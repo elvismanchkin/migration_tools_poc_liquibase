@@ -2,9 +2,10 @@ FROM golang:alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache git
 COPY go.mod go.sum ./
+RUN go mod download
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o template-service .
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o template-service .
 
 FROM surnet/alpine-wkhtmltopdf:3.21.2-0.12.6-small AS wkhtmltopdf
 
