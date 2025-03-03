@@ -28,16 +28,25 @@ databaseChangeLog:
                   name: content
                   value: |
                     <html>
-                    <body class="bluecurve-body">
-                      <div class="bluecurve-panel" style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <h1 class="bluecurve-title">Hello, {{.name}}!</h1>
-                        <p>This is the <strong>Test Template</strong> demonstrating dynamic content generation.</p>
-                        <div class="bluecurve-vars-panel" style="margin-top: 20px;">
-                          <h2 class="bluecurve-subtitle">Details:</h2>
-                          <ul>
-                            <li><strong>Name:</strong> {{.name}}</li>
-                          </ul>
+                    <head>
+                      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                    </head>
+                    <body class="bg-gray-50 font-sans">
+                      <div class="max-w-2xl mx-auto my-10 bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="bg-blue-600 text-white px-6 py-4">
+                          <h1 class="text-2xl font-bold">Hello, {{.name}}!</h1>
                         </div>
+                        <div class="px-6 py-8">
+                          <p class="text-gray-700 mb-6">
+                            This is the <span class="font-semibold">Test Template</span> demonstrating dynamic content 
+                            generation with Tailwind CSS styling.
+                          </p>
+                          <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                            <h2 class="text-xl font-semibold text-blue-800 mb-3">Details:</h2>
+                            <ul class="space-y-2 text-gray-700">
+                              <li class="flex"><span class="font-medium w-32">Name:</span> {{.name}}</li>
+                            </ul>
+                          </div>
                       </div>
                     </body>
                     </html>
@@ -82,21 +91,30 @@ databaseChangeLog:
                   name: content
                   value: |
                     <html>
-                    <body class="bluecurve-body p-4">
-                      <h1 class="bluecurve-title">INVOICE</h1>
-                      
-                      <p><strong>Invoice Date:</strong> {{.date}}</p>
-                      <p><strong>Invoice Number:</strong> {{.invoice_number}}</p>
-
-                      <h2 class="bluecurve-subtitle mt-4">Customer Information</h2>
-                      <p><strong>Name:</strong> {{.customer_name}}</p>
-                      <p><strong>Email:</strong> {{.customer_email}}</p>
-
-                      <h2 class="bluecurve-subtitle mt-4">Items</h2>
-                      <table class="bluecurve-panel" style="width: 100%; border-collapse: collapse;">
+                    <head>
+                      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                    </head>
+                    <body class="bg-gray-50 font-sans p-8">
+                      <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="bg-blue-600 text-white px-6 py-4">
+                          <h1 class="text-2xl font-bold">INVOICE</h1>
+                        </div>
+                        <div class="p-6">
+                          <div class="mb-6 grid grid-cols-2 gap-4">
+                            <p><span class="font-medium">Invoice Date:</span> {{.date}}</p>
+                            <p><span class="font-medium">Invoice Number:</span> {{.invoice_number}}</p>
+                          </div>
+                          
+                          <h2 class="text-xl font-semibold text-blue-800 mb-3">Customer Information</h2>
+                          <div class="mb-6 grid grid-cols-2 gap-4">
+                            <p><span class="font-medium">Name:</span> {{.customer_name}}</p>
+                            <p><span class="font-medium">Email:</span> {{.customer_email}}</p>
+                          </div>
+                          
+                          <h2 class="text-xl font-semibold text-blue-800 mb-3">Items</h2>
+                          <table class="w-full border-collapse mb-6">
                         <thead>
                           <tr>
-                            <th style="border: 1px solid #babdb6; padding: 8px;">Item</th>
                             <th style="border: 1px solid #babdb6; padding: 8px;">Quantity</th>
                             <th style="border: 1px solid #babdb6; padding: 8px;">Price</th>
                             <th style="border: 1px solid #babdb6; padding: 8px;">Total</th>
