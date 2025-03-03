@@ -1,0 +1,12 @@
+{{ define "content" }}
+<div class="alert alert-danger" style="margin-top: 20px;">
+    <h3>An error occurred</h3>
+    <p>{{ .UserMessage }}</p>
+
+    <!-- If you want to reveal the technical details to the user, keep this. 
+         In production, consider removing it or restricting it. -->
+    <hr>
+    <pre>{{ .ErrorDetail }}</pre>
+</div>
+{{ end }}
+
