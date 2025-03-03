@@ -21,12 +21,12 @@ databaseChangeLog:
                   name: content
                   value: |
                     <html>
-                    <body>
-                      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-                        <h1 style="color: #333;">Hello, {{.name}}!</h1>
-                        <p>This is a test template demonstrating dynamic content generation.</p>
-                        <div style="background-color: #f4f4f4; padding: 10px; margin-top: 20px;">
-                          <h2>Details:</h2>
+                    <body class="bluecurve-body">
+                      <div class="bluecurve-panel" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h1 class="bluecurve-title">Hello, {{.name}}!</h1>
+                        <p>This is a <strong>test template</strong> demonstrating dynamic content generation with a retro vibe.</p>
+                        <div class="bluecurve-vars-panel" style="margin-top: 20px;">
+                          <h2 class="bluecurve-subtitle">Details:</h2>
                           <ul>
                             <li><strong>Name:</strong> {{.name}}</li>
                             <li><strong>Date:</strong> {{.date}}</li>
@@ -45,7 +45,7 @@ databaseChangeLog:
               DELETE FROM template_service.template_variable 
               WHERE template_id = (SELECT id FROM template_service.template WHERE name = 'Test Template');
               
-              -- Insert new variables with the updated template
+              -- Insert new variables for the updated template
               WITH template_uuid AS (
                 SELECT id FROM template_service.template WHERE name = 'Test Template'
               )

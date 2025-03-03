@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"embed"
 	"log"
 	"net/http"
@@ -31,7 +32,12 @@ func main() {
 
 	// Set up database connection
 	db.SetupDatabase()
-	defer db.DB.Close()
+	defer func(DB *sql.DB) {
+		err := DB.Close()
+		if err != nil {
+			print(err)
+		}
+	}(db.DB)
 
 	// Set up template filesystem for handlers
 	handlers.FS = templateFS
