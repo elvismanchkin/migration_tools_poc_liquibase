@@ -5,24 +5,25 @@ A minimal proof-of-concept system with three separate components:
 1. PostgreSQL database
 2. Database migration service (using either Liquibase or Flyway)
 3. Template web service (Go)
+
 ## Project Structure
 
 ```
 template-system/
-├── docker-compose.yml        # Main Docker Compose file for all services
-├── docker-compose-flyway.yml # Docker Compose file using Flyway for migrations
-├── postgres/                 # PostgreSQL configuration
+├── docker-compose-liquibase.yml
+├── docker-compose-flyway.yml
+├── postgres/                    # PostgreSQL configuration
 │   ├── Dockerfile
 │   ├── init-scripts/
 │   └── config/
-├── migrations/               # Database migration service
+├── liquibase/                   # Liquibase database migrations
 │   ├── Dockerfile
-│   ├── migrations/           # Migration files
+│   ├── migrations/              # Migration files
 │   │   ├── v1_initial_schema.yaml
 │   │   ├── v2_create_audit_tables.yaml
 │   │   ├── v3_create_templates_tables.yaml
 │   │   ├── v4_add_configuration_tables.yaml
-│   │   └── dev/             # Environment-specific migrations
+│   │   └── dev/                 # Environment-specific migrations
 │   │       └── v20250228_add_test_data.yaml
 │   ├── scripts/              # Liquibase execution scripts
 │   │   ├── liquibase-migrate.sh
@@ -54,14 +55,10 @@ template-system/
 └── README.md                 # This file
 ```
 
-## Quick Start
+## Start Here
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/template-system.git
-cd template-system
-
-# Start all services
+# Start all services with Liquibase migration
 docker-compose up -d
 
 # Or use Flyway for migrations instead
@@ -113,11 +110,11 @@ Go web service that:
 The `docker-compose.yml` file orchestrates all three services:
 
 ```bash
-# Using Liquibase (default)
-docker-compose up -d --build
+# Using Liquibase
+docker-compose -f docker-compose-flyway.yml up --build
 
 # Using Flyway
-docker-compose -f docker-compose-flyway.yml up -d --build
+docker-compose -f docker-compose-flyway.yml up --build
 
 # View logs
 docker-compose logs -f
@@ -127,6 +124,16 @@ docker-compose down
 
 # Restart a specific service
 docker-compose restart service
+```
+
+```bash
+# Shutdown and cleanup
+
+# For Liquibase
+docker-compose -f docker-compose-liquibase.yml down -v && docker volume prune -f
+
+# For Flyway
+docker-compose -f docker-compose-flyway.yml down -v && docker volume prune -f
 ```
 
 ## Development

@@ -104,13 +104,13 @@ databaseChangeLog:
                             <p><span class="font-medium">Invoice Date:</span> {{.date}}</p>
                             <p><span class="font-medium">Invoice Number:</span> {{.invoice_number}}</p>
                           </div>
-                          
+                    
                           <h2 class="text-xl font-semibold text-blue-800 mb-3">Customer Information</h2>
                           <div class="mb-6 grid grid-cols-2 gap-4">
                             <p><span class="font-medium">Name:</span> {{.customer_name}}</p>
                             <p><span class="font-medium">Email:</span> {{.customer_email}}</p>
                           </div>
-                          
+                    
                           <h2 class="text-xl font-semibold text-blue-800 mb-3">Items</h2>
                           <table class="w-full border-collapse mb-6">
                         <thead>

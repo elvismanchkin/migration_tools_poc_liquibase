@@ -37,21 +37,20 @@
     padding: 1.5rem;
 }
 
-/* Rendered content styling */
 .rendered-content {
-  overflow: auto;
+    overflow: auto;
 }
 
 .pdf-preview-frame {
     background-color: white;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
     overflow: auto;
     padding: 2cm;
 }
 
 .pdf-preview-frame {
     background-color: white;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
     overflow: auto;
     padding: 2cm;
 }
@@ -109,12 +108,11 @@
     background: #555;
 }
 
-/* PDF preview styling */
 .pdf-preview {
     background: white;
     padding: 2cm;
     margin: 0 auto;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
     font-family: 'DejaVu Sans', Arial, sans-serif;
 }
 
@@ -123,8 +121,8 @@
     background-color: white !important;
 }
 
-.pdf-preview table, 
-.pdf-preview th, 
+.pdf-preview table,
+.pdf-preview th,
 .pdf-preview td {
     border: 1px solid black !important;
 }

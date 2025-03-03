@@ -3,13 +3,18 @@ databaseChangeLog:
       id: 1
       author: devops
       comment: Initial Schema Creation
-      # Add preConditions to handle existing database
-      preConditions:
-        - onFail:
-          not:
-            - tableExists:
-                schemaName: template_service
-                tableName: system_info
+preConditions:
+  # 'onFail': Specifies what Liquibase should do if the condition is not met.
+  - onFail:
+      # 'not': Negates the condition that follows, i.e., it must *not* be true.
+      not:
+        # 'tableExists': Checks if a table with the given name and schema exists.
+        # By wrapping 'tableExists' in 'not', this precondition passes only if
+        # the table does *not* exist. If the table does exist, Liquibase executes
+        # the action set by 'onFail'.
+        - tableExists:
+            schemaName: template_service
+            tableName: system_info
       changes:
         - sql:
             dbms: postgresql
@@ -48,7 +53,7 @@ databaseChangeLog:
                   name: updated_at
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: CURRENT_TIMESTAMP
-
+        # Update system_info
         - insert:
             tableName: system_info
             schemaName: template_service

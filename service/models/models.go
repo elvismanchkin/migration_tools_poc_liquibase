@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Template struct to match the database schema
 type Template struct {
 	ID           string
 	Name         string
@@ -22,10 +21,9 @@ type Template struct {
 	CreatedAt    time.Time
 	UpdatedBy    string
 	UpdatedAt    time.Time
-	CategoryName string // Joined from category table
+	CategoryName string
 }
 
-// TemplateVariable for template parameters
 type TemplateVariable struct {
 	ID           int
 	TemplateID   string
@@ -36,14 +34,12 @@ type TemplateVariable struct {
 	VariableType string
 }
 
-// TemplateCategory represents a template category
 type TemplateCategory struct {
 	ID          int
 	Name        string
 	Description string
 }
 
-// GetTemplates returns all templates
 func GetTemplates() ([]Template, error) {
 	rows, err := db.DB.Query(`
 		SELECT 
@@ -188,9 +184,7 @@ func GetTemplateCategories() ([]TemplateCategory, error) {
 	return categories, nil
 }
 
-// CreateTemplate adds a new template to the database
 func CreateTemplate(name, categoryID, content, format, createdBy string) (string, error) {
-	// Create new template in database
 	templateID := uuid.New().String()
 	_, err := db.DB.Exec(`
 		INSERT INTO template_service.template 
@@ -205,7 +199,6 @@ func CreateTemplate(name, categoryID, content, format, createdBy string) (string
 	return templateID, nil
 }
 
-// AddTemplateVariable adds a variable to a template
 func AddTemplateVariable(templateID, variableName, description, defaultValue string, isRequired bool) error {
 	_, err := db.DB.Exec(`
 		INSERT INTO template_service.template_variable 
@@ -216,7 +209,6 @@ func AddTemplateVariable(templateID, variableName, description, defaultValue str
 	return err
 }
 
-// UpdateTemplate updates an existing template
 func UpdateTemplate(id, name, categoryID, content, format, updatedBy string) error {
 	_, err := db.DB.Exec(`
 		UPDATE template_service.template 
@@ -232,7 +224,6 @@ func UpdateTemplate(id, name, categoryID, content, format, updatedBy string) err
 	return nil
 }
 
-// DeleteTemplate marks a template as inactive
 func DeleteTemplate(id string) error {
 	_, err := db.DB.Exec(`
 		UPDATE template_service.template 

@@ -4,12 +4,8 @@
 DO
 $$
     BEGIN
-        -- Check if we should run dev data
         IF '${environment}' = 'dev' THEN
-
-            -- Add test template if it doesn't exist
             IF NOT EXISTS (SELECT 1 FROM template_service.template WHERE name = 'Test Template') THEN
-                -- Insert test template
                 INSERT INTO template_service.template (id,
                                                        name,
                                                        category_id,
@@ -32,8 +28,7 @@ $$
                     </div>
                     <div class="px-6 py-8">
                       <p class="text-gray-700 mb-6">
-                        This is a <span class="font-semibold">test template</span> demonstrating dynamic content
-                        generation with Tailwind CSS styling.
+                        This is a <span class="font-semibold">test template</span>. Feel free to modify.
                       </p>
                       <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
                         <h2 class="text-xl font-semibold text-blue-800 mb-3">Details:</h2>
@@ -66,7 +61,7 @@ $$
                 VALUES ((SELECT id FROM template_uuid), 'name', 'Recipient name', 'User', true),
                        ((SELECT id FROM template_uuid), 'date', 'Current date', CURRENT_DATE::text, false),
                        ((SELECT id FROM template_uuid), 'message', 'Custom greeting message',
-                        'Welcome to our template system!', false);
+                        'Default message', false);
             END IF;
 
             -- Add invoice template if it doesn't exist
@@ -98,8 +93,6 @@ $$
                         true,
                         'system');
             END IF;
-
-            -- Add test configuration
             IF NOT EXISTS (SELECT 1 FROM template_service.configuration WHERE config_key = 'test_mode') THEN
                 INSERT INTO template_service.configuration (config_key, config_value, description)
                 VALUES ('test_mode', 'true', 'Enable test mode in development');

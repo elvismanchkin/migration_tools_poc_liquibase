@@ -1,4 +1,4 @@
-FROM postgres:15-alpine
+FROM postgres:16-alpine
 
 COPY config/postgresql.conf /etc/postgresql/postgresql.conf
 

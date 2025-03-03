@@ -3,7 +3,6 @@ databaseChangeLog:
       id: 3
       author: devops
       comment: Create Templates Tables
-      # Add preConditions to handle existing database
       preConditions:
         - onFail: MARK_RAN
           not:
@@ -15,7 +14,6 @@ databaseChangeLog:
             dbms: postgresql
             sql: SET search_path TO template_service, public;
 
-        # Create template_category table
         - createTable:
             tableName: template_category
             schemaName: template_service
@@ -43,7 +41,6 @@ databaseChangeLog:
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: CURRENT_TIMESTAMP
 
-        # Create template table
         - createTable:
             tableName: template
             schemaName: template_service
@@ -105,7 +102,6 @@ databaseChangeLog:
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: CURRENT_TIMESTAMP
 
-        # Create template_version table
         - createTable:
             tableName: template_version
             schemaName: template_service
@@ -151,14 +147,12 @@ databaseChangeLog:
                   name: change_notes
                   type: TEXT
 
-        # Add unique constraint
         - addUniqueConstraint:
             tableName: template_version
             schemaName: template_service
             columnNames: template_id, version
             constraintName: uk_template_id_version
 
-        # Create template_variable table
         - createTable:
             tableName: template_variable
             schemaName: template_service
@@ -208,14 +202,13 @@ databaseChangeLog:
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: CURRENT_TIMESTAMP
 
-        # Add unique constraint
         - addUniqueConstraint:
             tableName: template_variable
             schemaName: template_service
             columnNames: template_id, variable_name
             constraintName: uk_template_id_variable_name
 
-        # Create triggers for audit logging
+        # Create triggers for audit logging (don't do this in production please, unless you are forced)
         - sql:
             dbms: postgresql
             sql: |
@@ -227,7 +220,6 @@ databaseChangeLog:
               AFTER INSERT OR UPDATE OR DELETE ON template_service.template_version
               FOR EACH ROW EXECUTE FUNCTION audit.log_change();
 
-        # Add sample data
         - insert:
             tableName: template_category
             schemaName: template_service
@@ -272,7 +264,6 @@ databaseChangeLog:
               - column:
                   name: description
                   value: "Added template tables and sample data"
-      # Rollback instructions
       rollback:
         - sql:
             dbms: postgresql

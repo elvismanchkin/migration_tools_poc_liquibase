@@ -14,7 +14,7 @@ services:
     networks:
       - template-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U template_user -d template_db"]
+      test: [ "CMD-SHELL", "pg_isready -U template_user -d template_db" ]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -3,7 +3,6 @@ databaseChangeLog:
       id: 2
       author: devops
       comment: Create Audit Tables
-      # Add preConditions to handle existing database
       preConditions:
         - onFail: MARK_RAN
           not:
@@ -15,12 +14,10 @@ databaseChangeLog:
             dbms: postgresql
             sql: SET search_path TO template_service, public;
 
-        # Create audit schema if not exists
         - sql:
             dbms: postgresql
             sql: CREATE SCHEMA IF NOT EXISTS audit;
 
-        # Create audit log table
         - createTable:
             tableName: audit_log
             schemaName: audit
@@ -64,7 +61,6 @@ databaseChangeLog:
                   name: user_agent
                   type: TEXT
 
-        # Create indexes
         - createIndex:
             indexName: idx_audit_entity
             schemaName: audit
@@ -83,7 +79,6 @@ databaseChangeLog:
               - column:
                   name: timestamp
 
-        # Create audit function using alternate approach
         - sql:
             dbms: postgresql
             sql: DROP FUNCTION IF EXISTS audit.log_change();
@@ -124,7 +119,6 @@ databaseChangeLog:
               - column:
                   name: description
                   value: "Added audit tables and functions"
-      # Rollback instructions
       rollback:
         - sql:
             dbms: postgresql

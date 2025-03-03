@@ -60,7 +60,7 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 }
 
 func APIGetTemplates(w http.ResponseWriter, r *http.Request) {
-	_ = r //explicitly ignored
+	_ = r
 	templates, err := models.GetTemplates()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error fetching templates: "+err.Error())
@@ -255,7 +255,7 @@ func APIAddTemplateVariable(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIGetCategories(w http.ResponseWriter, r *http.Request) {
-	_ = r //explicitly ignored
+	_ = r
 	categories, err := models.GetTemplateCategories()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error fetching categories: "+err.Error())
