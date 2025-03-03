@@ -134,7 +134,7 @@ The `docker-compose.yml` file orchestrates all three services:
 
 ```bash
 # Using Liquibase
-docker-compose -f docker-compose-flyway.yml up --build
+docker-compose -f docker-compose-liquibase.yml up --build
 
 # Using Flyway
 docker-compose -f docker-compose-flyway.yml up --build

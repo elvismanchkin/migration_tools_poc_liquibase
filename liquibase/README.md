@@ -45,7 +45,7 @@ docker run --rm \
   -e "LIQUIBASE_COMMAND_PASSWORD=template_pass" \
   -e "LIQUIBASE_COMMAND_URL=jdbc:postgresql://postgres:5432/template_db" \
   --network=template-system_template-network \
-  liquibase/liquibase:4.20-alpine \
+  liquibase/liquibase:alpine \
   --changelog-file=master-changelog.yaml \
   update
 ```

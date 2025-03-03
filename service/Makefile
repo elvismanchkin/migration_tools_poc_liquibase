@@ -73,10 +73,4 @@ help:
 	echo "  make db           - Start only the database"; \
 	echo "  make service      - Start only the application service"; \
 	echo "  make test-api     - Test API health endpoint"; \
-	echo "  make init         - Create initial directory structure"; \
-	echo "  make help         - Display this help message"
-	echo "  make db         - Start only the database"; \
-	echo "  make service    - Start only the application service"; \
-	echo "  make test-api   - Test API health endpoint"; \
-	echo "  make init       - Create initial directory structure"; \
-	echo "  make help       - Display this help message"
+	echo "  make init         - Create initial directory structure"

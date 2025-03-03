@@ -22,6 +22,9 @@ contexts=${ENVIRONMENT}
 EOF
 
 # run actual update
-liquibase --defaultsFile=/liquibase/liquibase.properties update
+CONTEXTS_ARG=""
+[ -n "$ENVIRONMENT" ] && CONTEXTS_ARG="--contexts=$ENVIRONMENT"
+
+liquibase --defaultsFile=/liquibase/liquibase.properties update $CONTEXTS_ARG
 
 echo "Migrations completed successfully."
