@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -57,7 +58,11 @@ func GetTemplates() ([]Template, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			log.Printf("Error closing rows: %v", closeErr)
+		}
+	}()
 
 	var templates []Template
 	for rows.Next() {
@@ -87,7 +92,6 @@ func GetTemplates() ([]Template, error) {
 	return templates, nil
 }
 
-// GetTemplateByID returns a template by its ID
 func GetTemplateByID(id string) (Template, error) {
 	var t Template
 	var updatedBy sql.NullString
@@ -121,7 +125,6 @@ func GetTemplateByID(id string) (Template, error) {
 	return t, nil
 }
 
-// GetTemplateVariables returns all variables for a template
 func GetTemplateVariables(templateID string) ([]TemplateVariable, error) {
 	rows, err := db.DB.Query(`
 		SELECT 
@@ -134,26 +137,28 @@ func GetTemplateVariables(templateID string) ([]TemplateVariable, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			log.Printf("Error closing rows: %v", closeErr)
+		}
+	}()
 
 	var variables []TemplateVariable
 	for rows.Next() {
 		var v TemplateVariable
-		err := rows.Scan(
-			&v.ID, &v.TemplateID, &v.VariableName, &v.Description,
-			&v.DefaultValue, &v.IsRequired, &v.VariableType,
-		)
-		if err != nil {
+		if err := rows.Scan(&v.ID, &v.TemplateID, &v.VariableName, &v.Description,
+			&v.DefaultValue, &v.IsRequired, &v.VariableType); err != nil {
 			return nil, err
 		}
-
 		variables = append(variables, v)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return variables, nil
 }
 
-// GetTemplateCategories returns all template categories
 func GetTemplateCategories() ([]TemplateCategory, error) {
 	rows, err := db.DB.Query(`
 		SELECT id, name, description
@@ -163,7 +168,11 @@ func GetTemplateCategories() ([]TemplateCategory, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			log.Printf("Error closing rows: %v", closeErr)
+		}
+	}()
 
 	var categories []TemplateCategory
 	for rows.Next() {

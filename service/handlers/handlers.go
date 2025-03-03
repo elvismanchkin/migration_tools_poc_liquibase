@@ -25,6 +25,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 // HandleListTemplates lists all templates
 func HandleListTemplates(w http.ResponseWriter, r *http.Request) {
+	_ = r //explicitly ignored
 	templates, err := models.GetTemplates()
 	if err != nil {
 		http.Error(w, "Error fetching templates: "+err.Error(), http.StatusInternalServerError)
@@ -58,8 +59,8 @@ func HandleListTemplates(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleNewTemplateForm displays form to create a new template
 func HandleNewTemplateForm(w http.ResponseWriter, r *http.Request) {
+	_ = r //explicitly ignored
 	categories, err := models.GetTemplateCategories()
 	if err != nil {
 		http.Error(w, "Error fetching categories: "+err.Error(), http.StatusInternalServerError)
@@ -295,32 +296,28 @@ func HandleGeneratePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate PDF using wkhtmltopdf
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+	pdfGen, err := wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
 		http.Error(w, "Error creating PDF generator: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Create a new page from string
 	page := wkhtmltopdf.NewPageReader(strings.NewReader(renderedBuffer.String()))
-	pdfg.AddPage(page)
+	pdfGen.AddPage(page)
 
-	pdfg.Orientation.Set(wkhtmltopdf.OrientationPortrait)
-	pdfg.Dpi.Set(300)
+	pdfGen.Orientation.Set(wkhtmltopdf.OrientationPortrait)
+	pdfGen.Dpi.Set(300)
 
-	err = pdfg.Create()
+	err = pdfGen.Create()
 	if err != nil {
 		http.Error(w, "Error generating PDF: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Set response headers for PDF download
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.pdf\"", tmpl.Name))
 
-	// Write PDF to response
-	_, err = w.Write(pdfg.Bytes())
+	_, err = w.Write(pdfGen.Bytes())
 	if err != nil {
 		http.Error(w, "Error sending PDF: "+err.Error(), http.StatusInternalServerError)
 		return

@@ -10,10 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Database connection
 var DB *sql.DB
 
-// WaitForDatabase waits for the database to be ready
 func WaitForDatabase() {
 	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "5432")
@@ -48,7 +46,6 @@ func WaitForDatabase() {
 	log.Fatal("Database not available after maximum retries")
 }
 
-// SetupDatabase initializes the database connection
 func SetupDatabase() {
 	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "5432")
@@ -65,7 +62,6 @@ func SetupDatabase() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	// Test the connection
 	err = DB.Ping()
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
@@ -74,7 +70,6 @@ func SetupDatabase() {
 	log.Println("Connected to database")
 }
 
-// Helper to get environment variable with default
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {

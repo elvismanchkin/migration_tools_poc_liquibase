@@ -110,7 +110,7 @@ Or in case of error:
 
 ```json
 {
-  "success": false,
-  "error": "Error message"
+    "success": false,
+    "error": "Error message"
 }
 ```

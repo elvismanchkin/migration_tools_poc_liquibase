@@ -7,13 +7,13 @@
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">Template Name</label>
                 <input type="text" id="name" name="name" required
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div>
                 <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
                 <select id="category_id" name="category_id" required
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Select a category</option>
                     {{range .Categories}}
                     <option value="{{.ID}}">{{.Name}}</option>
@@ -24,7 +24,7 @@
             <div>
                 <label for="format" class="block text-sm font-medium text-gray-700">Format</label>
                 <select id="format" name="format" required
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <option value="html">HTML</option>
                     <option value="text">Plain Text</option>
                     <option value="markdown">Markdown</option>
@@ -34,7 +34,7 @@
             <div>
                 <label for="content" class="block text-sm font-medium text-gray-700">Template Content</label>
                 <textarea id="content" name="content" rows="10" required
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
                 <p class="mt-1 text-sm text-gray-500">Use {{"{{"}}variable{{"}}"}} syntax for template variables.</p>
             </div>
         </div>
@@ -48,24 +48,25 @@
                     <div>
                         <label for="var_name" class="block text-sm font-medium text-gray-700">Variable Name</label>
                         <input type="text" id="var_name" name="var_name"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <div>
                         <label for="var_default" class="block text-sm font-medium text-gray-700">Default Value</label>
                         <input type="text" id="var_default" name="var_default"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
 
                 <div>
                     <label for="var_description" class="block text-sm font-medium text-gray-700">Description</label>
                     <input type="text" id="var_description" name="var_description"
-                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
                 <div class="flex items-center">
-                    <input id="var_required" name="var_required" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <input id="var_required" name="var_required" type="checkbox"
+                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                     <label for="var_required" class="ml-2 block text-sm text-gray-700">Required</label>
                 </div>
             </div>
@@ -73,7 +74,8 @@
 
         <div class="flex items-center justify-between">
             <a href="/templates" class="text-blue-500 hover:underline">Cancel</a>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">
+            <button type="submit"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">
                 Create Template
             </button>
         </div>

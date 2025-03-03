@@ -36,7 +36,6 @@ databaseChangeLog:
                           <h2 class="bluecurve-subtitle">Details:</h2>
                           <ul>
                             <li><strong>Name:</strong> {{.name}}</li>
-                            <li><strong>Feel:</strong> Retro!</li>
                           </ul>
                         </div>
                       </div>

@@ -1,78 +1,65 @@
-.PHONY: up down restart build clean logs status migrate
+.PHONY: all up up-logs down restart build clean logs status migrate db service test-api init help
 
-# Default target
+DC = docker-compose
+
 all: up
 
-# Start all services
 up:
-	docker-compose up -d
+	$(DC) up -d
 
-# Start all services with logs
 up-logs:
-	docker-compose up
+	$(DC) up
 
-# Stop all services
 down:
-	docker-compose down
+	$(DC) down
 
-# Restart all services
 restart:
-	docker-compose restart
+	$(DC) restart
 
-# Rebuild all services
 build:
-	docker-compose build
+	$(DC) build
 
-# Clean up volumes and containers
 clean:
-	docker-compose down -v
+	$(DC) down -v
 
-# View logs
 logs:
-	docker-compose logs -f
+	$(DC) logs -f
 
-# Check service status
 status:
-	docker-compose ps
+	$(DC) ps
 
-# Run database migrations manually
 migrate:
-	docker-compose up -d postgres
-	docker-compose up migrations
+	$(DC) up -d postgres
+	$(DC) up migrations
 
-# Just run the database
 db:
-	docker-compose up -d postgres
+	$(DC) up -d postgres
 
-# Just run the service
 service:
-	docker-compose up -d service
+	$(DC) up -d service
 
-# Test the API
 test-api:
 	curl -v http://localhost:8080/health
 
-# Create directory structure
 init:
-	mkdir -p postgres/config postgres/init-scripts
-	mkdir -p migrations/migrations migrations/scripts
-	mkdir -p service/templates service/static
-	@echo "Directory structure created successfully!"
+	mkdir -p postgres/config postgres/init-scripts \
+	         migrations/migrations migrations/scripts \
+	         service/templates service/static
+	@echo "Directory structure created."
 
-# Help information
 help:
-	@echo "Template Service Management Commands:"
-	@echo "  make up            - Start all services in detached mode"
-	@echo "  make up-logs       - Start all services and show logs"
-	@echo "  make down          - Stop all services"
-	@echo "  make restart       - Restart all services"
-	@echo "  make build         - Rebuild all services"
-	@echo "  make clean         - Clean up volumes and containers"
-	@echo "  make logs          - View logs from all services"
-	@echo "  make status        - Check service status"
-	@echo "  make migrate       - Run database migrations manually"
-	@echo "  make db            - Start only the database service"
-	@echo "  make service       - Start only the template service"
-	@echo "  make test-api      - Test the API health endpoint"
-	@echo "  make init          - Create initial directory structure"
-	@echo "  make help          - Show this help message"
+	@echo "Commands:"; \
+	echo "  make up         - Start all services (detached)"; \
+	echo "  make up-logs    - Start services and display logs"; \
+	echo "  make down       - Stop all services"; \
+	echo "  make restart    - Restart services"; \
+	echo "  make build      - Rebuild services"; \
+	echo "  make clean      - Remove containers and volumes"; \
+	echo "  make logs       - Tail service logs"; \
+	echo "  make status     - Show service status"; \
+	echo "  make migrate    - Run database migrations"; \
+	echo "  make db         - Start only the database"; \
+	echo "  make service    - Start only the application service"; \
+	echo "  make test-api   - Test API health endpoint"; \
+	echo "  make init       - Create initial directory structure"; \
+	echo "  make help       - Display this help message"
