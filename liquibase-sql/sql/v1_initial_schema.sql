@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset devops:1
+--changeset authornamehere:1
 --comment Initial Schema Creation
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

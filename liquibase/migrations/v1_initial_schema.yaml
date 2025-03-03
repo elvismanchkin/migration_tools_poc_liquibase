@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 1
-      author: devops
+      author: authornamehere
       comment: Initial Schema Creation
 preConditions:
   # 'onFail': Specifies what Liquibase should do if the condition is not met.

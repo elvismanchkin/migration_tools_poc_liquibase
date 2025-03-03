@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 20250228001
-      author: devops
+      author: authornamehere
       comment: Add test data for development environment
       context: dev
       runAlways: true

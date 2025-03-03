@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset devops:2
+--changeset authornamehere:2
 --comment Create Audit Tables
 
 SET search_path TO template_service, public;
@@ -24,7 +24,7 @@ CREATE INDEX idx_audit_timestamp ON audit.audit_log (timestamp);
 
 DROP FUNCTION IF EXISTS audit.log_change();
 
---changeset devops:2.1
+--changeset authornamehere:2.1
 --comment Create Audit Function
 CREATE OR REPLACE FUNCTION audit.log_change()
     RETURNS TRIGGER
@@ -50,7 +50,7 @@ AS
     END;
 ';
 
---changeset devops:2.2
+--changeset authornamehere:2.2
 --comment Update System Info
 INSERT INTO template_service.system_info (version, description)
 VALUES ('1.0.1', 'Added audit tables and functions');

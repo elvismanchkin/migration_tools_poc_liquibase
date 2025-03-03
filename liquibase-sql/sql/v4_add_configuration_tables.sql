@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset devops:4
+--changeset authornamehere:4
 --comment Add Configuration Tables
 
 SET search_path TO template_service, public;
@@ -49,7 +49,7 @@ CREATE TABLE template_service.template_engine_mapping
     PRIMARY KEY (template_id, engine_id)
 );
 
---changeset devops:4.1
+--changeset authornamehere:4.1
 --comment Create Triggers for Configuration Tables
 
 CREATE TRIGGER configuration_audit
@@ -64,7 +64,7 @@ CREATE TRIGGER template_config_audit
     FOR EACH ROW
 EXECUTE FUNCTION audit.log_change();
 
---changeset devops:4.2
+--changeset authornamehere:4.2
 --comment Add Default Configuration
 
 INSERT INTO template_service.configuration (config_key, config_value, description)
@@ -73,7 +73,7 @@ VALUES ('default_template_format', 'html', 'Default format for new templates'),
        ('enable_template_caching', 'true', 'Whether to cache rendered templates'),
        ('default_rendering_engine', 'freemarker', 'Default template rendering engine');
 
---changeset devops:4.3
+--changeset authornamehere:4.3
 --comment Add Rendering Engines
 
 INSERT INTO template_service.rendering_engine (name, description, engine_type, config, is_active)

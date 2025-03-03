@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset devops:20250228001
+--changeset authornamehere:20250228001
 --comment Add test data for development environment
 --context dev
 --runAlways true
@@ -51,7 +51,7 @@ SELECT id, 'name', 'Recipient name', 'User', true
 FROM template_service.template
 WHERE name = 'Test Template';
 
---changeset devops:20250228002
+--changeset authornamehere:20250228002
 --comment Add Invoice Template
 --context dev
 --runAlways true
@@ -145,7 +145,7 @@ SELECT id, 'customer_email', 'Customer email', 'john.doe@example.com', true
 FROM template_service.template
 WHERE name = 'Invoice Template';
 
---changeset devops:20250228003
+--changeset authornamehere:20250228003
 --comment Add test configuration
 --context dev
 --runAlways true

@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 4
-      author: devops
+      author: authornamehere
       comment: Add Configuration Tables
       preConditions:
         - onFail: MARK_RAN

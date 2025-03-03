@@ -83,7 +83,7 @@ Example migration file:
 ```sql
 --liquibase formatted sql
 
---changeset devops:5
+--changeset authornamehere:5
 --comment Add User Table
 CREATE TABLE template_service.users
 (
@@ -101,7 +101,7 @@ CREATE TABLE template_service.users
 For environment-specific data, use the `context` attribute in your changeset:
 
 ```sql
---changeset devops:20250301001
+--changeset authornamehere:20250301001
 --comment Add Test Data
 --context dev
 --runAlways true

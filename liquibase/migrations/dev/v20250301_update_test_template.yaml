@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 20250301001
-      author: devops
+      author: authornamehere
       comment: Update test template with more detailed content
       context: dev
       runAlways: true

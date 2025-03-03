@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset devops:3
+--changeset authornamehere:3
 --comment Create Templates Tables
 
 SET search_path TO template_service, public;
@@ -60,7 +60,7 @@ CREATE TABLE template_service.template_variable
 ALTER TABLE template_service.template_variable
     ADD CONSTRAINT uk_template_id_variable_name UNIQUE (template_id, variable_name);
 
---changeset devops:3.1
+--changeset authornamehere:3.1
 --comment Create Triggers for Templates Tables
 
 CREATE TRIGGER template_audit
@@ -75,7 +75,7 @@ CREATE TRIGGER template_version_audit
     FOR EACH ROW
 EXECUTE FUNCTION audit.log_change();
 
---changeset devops:3.2
+--changeset authornamehere:3.2
 --comment Add Template Categories
 
 INSERT INTO template_service.template_category (name, description)

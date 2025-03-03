@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 3
-      author: devops
+      author: authornamehere
       comment: Create Templates Tables
       preConditions:
         - onFail: MARK_RAN
