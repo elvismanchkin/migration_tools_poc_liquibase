@@ -3,13 +3,13 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/models"
 	"html/template"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/yourusername/template-service/models"
 )
 
 type APIResponse struct {
@@ -334,7 +334,7 @@ func APIRenderTemplate(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIHealthCheck(w http.ResponseWriter, r *http.Request) {
-	_ = r // explicitly ignored
+	_ = r
 
 	status := map[string]interface{}{
 		"status":    "up",

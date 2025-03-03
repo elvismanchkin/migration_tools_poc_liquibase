@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/db"
 	"github.com/google/uuid"
-	"github.com/yourusername/template-service/db"
 )
 
 // Template struct to match the database schema

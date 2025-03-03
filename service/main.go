@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
-	"github.com/yourusername/template-service/db"
-	"github.com/yourusername/template-service/handlers"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/db"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/handlers"
 )
 
 //go:embed templates/*

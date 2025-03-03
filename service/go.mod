@@ -1,4 +1,4 @@
-module github.com/yourusername/template-service
+module github.com/elvismanchkin/migration_tools_poc_liquibase
 
 go 1.20
 
