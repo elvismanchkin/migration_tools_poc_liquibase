@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+    <!-- Include individual migration files in order -->
+    <include file="sql/v1_initial_schema.sql" relativeToChangelogFile="true"/>
+    <include file="sql/v2_create_audit_tables.sql" relativeToChangelogFile="true"/>
+    <include file="sql/v3_create_templates_tables.sql" relativeToChangelogFile="true"/>
+    <include file="sql/v4_add_configuration_tables.sql" relativeToChangelogFile="true"/>
+
+    <!-- Include environment-specific migrations -->
+    <include file="sql/dev/v20250228_add_test_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

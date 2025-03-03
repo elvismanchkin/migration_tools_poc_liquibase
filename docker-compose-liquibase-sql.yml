@@ -1,0 +1,69 @@
+services:
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: template_db
+      POSTGRES_USER: template_user
+      POSTGRES_PASSWORD: template_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - template-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U template_user -d template_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  liquibase-sql:
+    build:
+      context: ./liquibase-sql
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: template_db
+      DB_USER: template_user
+      DB_PASSWORD: template_pass
+      DB_SCHEMA: template_service
+      ENVIRONMENT: dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - template-network
+
+  service:
+    build:
+      context: ./service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: template_db
+      DB_USER: template_user
+      DB_PASSWORD: template_pass
+      DB_SCHEMA: template_service
+      SKIP_MIGRATIONS: "true"
+      ENVIRONMENT: dev
+      SERVER_PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      liquibase-sql:
+        condition: service_completed_successfully
+    networks:
+      - template-network
+
+networks:
+  template-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

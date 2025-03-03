@@ -4,6 +4,7 @@ A minimal proof-of-concept system with three separate components:
 
 1. PostgreSQL database
 2. Database migration service (using either Liquibase or Flyway)
+    - Supports three migration approaches: Liquibase YAML, Liquibase SQL, or Flyway SQL
 3. Template web service (Go)
 
 ## Project Structure
@@ -11,6 +12,7 @@ A minimal proof-of-concept system with three separate components:
 ```
 template-system/
 ├── docker-compose-liquibase.yml
+├── docker-compose-liquibase-sql.yml
 ├── docker-compose-flyway.yml
 ├── postgres/                    # PostgreSQL configuration
 │   ├── Dockerfile
@@ -30,6 +32,16 @@ template-system/
 │   │   ├── liquibase-validate.sh
 │   │   └── liquibase-api.sh
 │   └── master-changelog.yaml # Liquibase master changelog
+├── liquibase-sql/            # Liquibase SQL-formatted migrations
+│   ├── Dockerfile
+│   ├── sql/                  # SQL migration files
+│   │   ├── v1_initial_schema.sql
+│   │   ├── v2_create_audit_tables.sql
+│   │   ├── v3_create_templates_tables.sql
+│   │   ├── v4_add_configuration_tables.sql
+│   │   └── dev/              # Environment-specific migrations
+│   │       └── v20250228_add_test_data.sql
+│   └── master-changelog.xml  # XML changelog for SQL migrations
 ├── flyway/                   # Flyway migration service
 │   ├── Dockerfile
 │   ├── entrypoint.sh
@@ -64,6 +76,9 @@ docker-compose up -d
 # Or use Flyway for migrations instead
 docker-compose -f docker-compose-flyway.yml up -d
 
+# Or use Liquibase with SQL-formatted migrations
+docker-compose -f docker-compose-liquibase-sql.yml up -d
+
 # Access the web application
 open http://localhost:8080
 ```
@@ -81,6 +96,14 @@ The project supports two migration tools:
 #### Liquibase (migrations/)
 
 Uses YAML format for migrations with a schema-driven approach.
+
+- Waits for the database to be ready
+- Applies migrations using Liquibase
+- Exits after completing migrations
+
+#### Liquibase SQL (liquibase-sql/)
+
+Uses SQL format for migrations with embedded changeset metadata.
 
 - Waits for the database to be ready
 - Applies migrations using Liquibase
@@ -116,6 +139,9 @@ docker-compose -f docker-compose-flyway.yml up --build
 # Using Flyway
 docker-compose -f docker-compose-flyway.yml up --build
 
+# Using Liquibase SQL
+docker-compose -f docker-compose-liquibase-sql.yml up --build
+
 # View logs
 docker-compose logs -f
 
@@ -134,6 +160,9 @@ docker-compose -f docker-compose-liquibase.yml down -v && docker volume prune -f
 
 # For Flyway
 docker-compose -f docker-compose-flyway.yml down -v && docker volume prune -f
+
+# For Liquibase SQL
+docker-compose -f docker-compose-liquibase-sql.yml down -v && docker volume prune -f
 ```
 
 ## Development
