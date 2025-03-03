@@ -3,14 +3,14 @@
 A minimal proof-of-concept system with three separate components:
 
 1. PostgreSQL database
-2. Database migration service
-3. Template web service
-
+2. Database migration service (using either Liquibase or Flyway)
+3. Template web service (Go)
 ## Project Structure
 
 ```
 template-system/
 ├── docker-compose.yml        # Main Docker Compose file for all services
+├── docker-compose-flyway.yml # Docker Compose file using Flyway for migrations
 ├── postgres/                 # PostgreSQL configuration
 │   ├── Dockerfile
 │   ├── init-scripts/
@@ -29,6 +29,16 @@ template-system/
 │   │   ├── liquibase-validate.sh
 │   │   └── liquibase-api.sh
 │   └── master-changelog.yaml # Liquibase master changelog
+├── flyway/                   # Flyway migration service
+│   ├── Dockerfile
+│   ├── entrypoint.sh
+│   ├── sql/                  # Flyway SQL migrations
+│   │   ├── V1__Initial_Schema.sql
+│   │   ├── V2__Create_Audit_Tables.sql
+│   │   ├── V3__Create_Templates_Tables.sql
+│   │   ├── V4__Add_Configuration_Tables.sql
+│   │   └── R__Dev_Data.sql   # Repeatable migration for dev data
+│   └── README.md
 ├── service/                  # Go template service
 │   ├── Dockerfile
 │   ├── templates/            # HTML templates for the frontend
@@ -54,6 +64,9 @@ cd template-system
 # Start all services
 docker-compose up -d
 
+# Or use Flyway for migrations instead
+docker-compose -f docker-compose-flyway.yml up -d
+
 # Access the web application
 open http://localhost:8080
 ```
@@ -64,16 +77,27 @@ open http://localhost:8080
 
 Standalone PostgreSQL database with custom configuration.
 
-### 2. Database Migrations (migrations/)
+### 2. Database Migrations
 
-Separate service using the official Liquibase Docker image for database migrations. This service:
+The project supports two migration tools:
+
+#### Liquibase (migrations/)
+
+Uses YAML format for migrations with a schema-driven approach.
 
 - Waits for the database to be ready
 - Applies migrations using Liquibase
 - Exits after completing migrations
 
-This service uses the official Liquibase Docker image (`liquibase/liquibase:4.20-alpine`) for simplicity and
-maintainability.
+#### Flyway (flyway/)
+
+Uses plain SQL migrations with a naming convention-based approach.
+
+- Waits for the database to be ready
+- Applies migrations using Flyway
+- Exits after completing migrations
+
+You can choose either tool based on your preference.
 
 ### 3. Template Service (service/)
 
@@ -89,8 +113,11 @@ Go web service that:
 The `docker-compose.yml` file orchestrates all three services:
 
 ```bash
-# Start all services
-docker-compose up -d
+# Using Liquibase (default)
+docker-compose up -d --build
+
+# Using Flyway
+docker-compose -f docker-compose-flyway.yml up -d --build
 
 # View logs
 docker-compose logs -f
