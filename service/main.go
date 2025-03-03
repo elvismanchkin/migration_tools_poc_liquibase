@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
-	"github.com/yourusername/template-service/db"
-	"github.com/yourusername/template-service/handlers"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/db"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/handlers"
 )
 
 //go:embed templates/*
@@ -32,9 +32,16 @@ func main() {
 	defer func(DB *sql.DB) {
 		err := DB.Close()
 		if err != nil {
-			print(err)
+			log.Printf("Error closing SQL DB: %v", err)
 		}
 	}(db.DB)
+
+	// Also defer closing the Ent client
+	defer func() {
+		if err := db.EntClient.Close(); err != nil {
+			log.Printf("Error closing Ent client: %v", err)
+		}
+	}()
 
 	handlers.FS = templateFS
 	router := mux.NewRouter()

@@ -1,8 +1,11 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	ent "github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated"
+
 	"log"
 	"os"
 	"time"
@@ -11,6 +14,8 @@ import (
 )
 
 var DB *sql.DB
+var EntClient *ent.Client
+var Ctx = context.Background()
 
 func WaitForDatabase() {
 	host := getEnv("DB_HOST", "localhost")
@@ -33,7 +38,7 @@ func WaitForDatabase() {
 				log.Println("Database is ready!")
 				err := db.Close()
 				if err != nil {
-					return
+					log.Printf("Error closing database connection: %v", err)
 				}
 				return
 			}
@@ -67,6 +72,24 @@ func SetupDatabase() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
+	// Initialize Ent client
+	schema := getEnv("DB_SCHEMA", "template_service")
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s,public",
+		host, port, user, password, dbname, schema)
+
+	client, err := ent.Open("postgres", dsn)
+	if err != nil {
+		log.Fatalf("Failed to connect to database with Ent: %v", err)
+	}
+
+	// Run database migrations (only in development)
+	if getEnv("ENVIRONMENT", "") == "dev" {
+		if err := client.Schema.Create(Ctx); err != nil {
+			log.Printf("Warning: Schema creation error: %v", err)
+		}
+	}
+
+	EntClient = client
 	log.Println("Connected to database")
 }
 

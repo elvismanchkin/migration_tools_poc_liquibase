@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/models"
 	"github.com/gorilla/mux"
-	"github.com/yourusername/template-service/models"
 )
 
 // FS is the embedded filesystem for HTML templates

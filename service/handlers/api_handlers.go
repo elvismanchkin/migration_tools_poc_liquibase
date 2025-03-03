@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/models"
 	"github.com/gorilla/mux"
-	"github.com/yourusername/template-service/models"
 )
 
 type APIResponse struct {

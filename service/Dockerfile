@@ -1,10 +1,13 @@
 FROM golang:1.20-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache git
-COPY go.mod go.sum ./
+COPY go.mod ./
+RUN rm -rf vendor/ || true
+RUN go mod download
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o template-service .
+RUN go generate ./ent
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o template-service .
 
 FROM surnet/alpine-wkhtmltopdf:3.21.2-0.12.6-small AS wkhtmltopdf
 

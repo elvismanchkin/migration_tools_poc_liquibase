@@ -114,3 +114,80 @@ Or in case of error:
     "error": "Error message"
 }
 ```
+
+## ORM Integration
+
+This project demonstrates integration with two popular Go ORMs: GORM and Ent.
+
+### Using Ent ORM
+
+[Ent](https://entgo.io/) is a powerful entity framework for Go that provides a simple API for modeling, querying, and
+maintaining your database schema.
+
+#### Setup
+
+1. Make sure you have the Ent dependencies installed:
+
+```bash
+go get entgo.io/ent
+```
+
+2. The schema definitions are in the `service/ent/schema` directory:
+    - `template.go`: Defines the Template entity
+    - `template_category.go`: Defines the TemplateCategory entity
+    - `template_variable.go`: Defines the TemplateVariable entity
+
+3. Generate the Ent code:
+
+```bash
+cd service
+go generate ./ent
+```
+
+#### Key Features
+
+- **Type-Safe API**: Ent provides a fully type-safe API generated from your schema definitions.
+- **Rich Query Interface**: Create complex queries with a simple and fluent API.
+- **Schema Migrations**: Ent can automatically create database schema based on your entity definitions.
+- **Relationships**: Automatically handles entity relationships with edges.
+
+#### Sample Usage
+
+```go
+// Query active templates with their categories
+templates, err := db.EntClient.Template.
+Query().
+Where(template.IsActiveEQ(true)).
+WithCategory().
+All(ctx)
+
+// Create a new template
+template, err := db.EntClient.Template.
+Create().
+SetName("Example Template").
+SetCategoryID(1).
+SetContent("<h1>Hello, {{.name}}!</h1>").
+SetFormat("html").
+SetCreatedBy("admin").
+Save(ctx)
+```
+
+### Using GORM
+
+[GORM](https://gorm.io/) is a developer-friendly ORM library for Go that provides a more traditional ORM approach.
+
+#### Setup
+
+1. Install GORM dependencies:
+
+```bash
+go get gorm.io/gorm
+go get gorm.io/driver/postgres
+```
+
+2. Models are defined in `service/models/models.go` with GORM tags
+
+3. The database connection is set up in `service/db/db.go`
+
+For more information, see the [GORM Documentation](https://gorm.io/docs/)
+and [Ent Documentation](https://entgo.io/docs/getting-started).

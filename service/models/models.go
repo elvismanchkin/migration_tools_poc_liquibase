@@ -1,15 +1,18 @@
 package models
 
 import (
-	"database/sql"
-	"log"
+	"strconv"
 	"time"
 
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/db"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated/template"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated/templatecategory"
+	"github.com/elvismanchkin/migration_tools_poc_liquibase/ent_generated/templatevariable"
 	"github.com/google/uuid"
-	"github.com/yourusername/template-service/db"
 )
 
-// Template struct to match the database schema
+// For compatibility with existing code
 type Template struct {
 	ID           string
 	Name         string
@@ -22,10 +25,9 @@ type Template struct {
 	CreatedAt    time.Time
 	UpdatedBy    string
 	UpdatedAt    time.Time
-	CategoryName string // Joined from category table
+	CategoryName string
 }
 
-// TemplateVariable for template parameters
 type TemplateVariable struct {
 	ID           int
 	TemplateID   string
@@ -36,209 +38,243 @@ type TemplateVariable struct {
 	VariableType string
 }
 
-// TemplateCategory represents a template category
 type TemplateCategory struct {
 	ID          int
 	Name        string
 	Description string
 }
 
+// Convert Ent template to our model
+func toTemplateModel(t *ent.Template) Template {
+	template := Template{
+		ID:        t.ID.String(),
+		Name:      t.Name,
+		Content:   t.Content,
+		Format:    t.Format,
+		Version:   t.Version,
+		IsActive:  t.IsActive,
+		CreatedBy: t.CreatedBy,
+		CreatedAt: t.CreatedAt,
+		UpdatedAt: t.UpdatedAt,
+	}
+
+	// Handle nullable fields
+	if t.UpdatedBy != nil {
+		template.UpdatedBy = *t.UpdatedBy
+	}
+
+	// Set category information if available
+	if t.Edges.Category != nil {
+		template.CategoryID = t.Edges.Category.ID
+		template.CategoryName = t.Edges.Category.Name
+	}
+
+	return template
+}
+
 // GetTemplates returns all templates
 func GetTemplates() ([]Template, error) {
-	rows, err := db.DB.Query(`
-		SELECT 
-			t.id, t.name, t.category_id, t.content, t.format, 
-			t.version, t.is_active, t.created_by, t.created_at, 
-			t.updated_by, t.updated_at, c.name as category_name
-		FROM template_service.template t
-		JOIN template_service.template_category c ON t.category_id = c.id
-		WHERE t.is_active = true
-		ORDER BY t.created_at DESC
-	`)
+	templates, err := db.EntClient.Template.
+		Query().
+		Where(template.IsActiveEQ(true)).
+		Order(ent.Desc(template.FieldCreatedAt)).
+		WithCategory().
+		All(db.Ctx)
+
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("Error closing rows: %v", closeErr)
-		}
-	}()
 
-	var templates []Template
-	for rows.Next() {
-		var t Template
-		var updatedBy sql.NullString
-		var updatedAt sql.NullTime
-
-		err := rows.Scan(
-			&t.ID, &t.Name, &t.CategoryID, &t.Content, &t.Format,
-			&t.Version, &t.IsActive, &t.CreatedBy, &t.CreatedAt,
-			&updatedBy, &updatedAt, &t.CategoryName,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if updatedBy.Valid {
-			t.UpdatedBy = updatedBy.String
-		}
-		if updatedAt.Valid {
-			t.UpdatedAt = updatedAt.Time
-		}
-
-		templates = append(templates, t)
+	result := make([]Template, len(templates))
+	for i, t := range templates {
+		result[i] = toTemplateModel(t)
 	}
 
-	return templates, nil
+	return result, nil
 }
 
+// GetTemplateByID returns a template by ID
 func GetTemplateByID(id string) (Template, error) {
-	var t Template
-	var updatedBy sql.NullString
-	var updatedAt sql.NullTime
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return Template{}, err
+	}
 
-	err := db.DB.QueryRow(`
-		SELECT 
-			t.id, t.name, t.category_id, t.content, t.format, 
-			t.version, t.is_active, t.created_by, t.created_at, 
-			t.updated_by, t.updated_at, c.name as category_name
-		FROM template_service.template t
-		JOIN template_service.template_category c ON t.category_id = c.id
-		WHERE t.id = $1
-	`, id).Scan(
-		&t.ID, &t.Name, &t.CategoryID, &t.Content, &t.Format,
-		&t.Version, &t.IsActive, &t.CreatedBy, &t.CreatedAt,
-		&updatedBy, &updatedAt, &t.CategoryName,
-	)
+	t, err := db.EntClient.Template.
+		Query().
+		Where(template.ID(uid)).
+		WithCategory().
+		Only(db.Ctx)
 
 	if err != nil {
-		return t, err
+		return Template{}, err
 	}
 
-	if updatedBy.Valid {
-		t.UpdatedBy = updatedBy.String
-	}
-	if updatedAt.Valid {
-		t.UpdatedAt = updatedAt.Time
-	}
-
-	return t, nil
+	return toTemplateModel(t), nil
 }
 
+// GetTemplateVariables returns variables for a template
 func GetTemplateVariables(templateID string) ([]TemplateVariable, error) {
-	rows, err := db.DB.Query(`
-		SELECT 
-			id, template_id, variable_name, description, 
-			default_value, is_required, variable_type
-		FROM template_service.template_variable
-		WHERE template_id = $1
-		ORDER BY id
-	`, templateID)
+	uid, err := uuid.Parse(templateID)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("Error closing rows: %v", closeErr)
-		}
-	}()
 
-	var variables []TemplateVariable
-	for rows.Next() {
-		var v TemplateVariable
-		if err := rows.Scan(&v.ID, &v.TemplateID, &v.VariableName, &v.Description,
-			&v.DefaultValue, &v.IsRequired, &v.VariableType); err != nil {
-			return nil, err
-		}
-		variables = append(variables, v)
-	}
+	vars, err := db.EntClient.TemplateVariable.
+		Query().
+		Where(templatevariable.HasTemplateWith(template.ID(uid))).
+		All(db.Ctx)
 
-	if err := rows.Err(); err != nil {
+	if err != nil {
 		return nil, err
 	}
-	return variables, nil
+
+	result := make([]TemplateVariable, len(vars))
+	for i, v := range vars {
+		result[i] = TemplateVariable{
+			ID:           v.ID,
+			TemplateID:   templateID,
+			VariableName: v.VariableName,
+			IsRequired:   v.IsRequired,
+			VariableType: v.VariableType,
+		}
+
+		// Handle nullable fields
+		if v.Description != nil {
+			result[i].Description = *v.Description
+		}
+
+		if v.DefaultValue != nil {
+			result[i].DefaultValue = *v.DefaultValue
+		}
+	}
+
+	return result, nil
 }
 
+// GetTemplateCategories returns all template categories
 func GetTemplateCategories() ([]TemplateCategory, error) {
-	rows, err := db.DB.Query(`
-		SELECT id, name, description
-		FROM template_service.template_category
-		ORDER BY name
-	`)
+	categories, err := db.EntClient.TemplateCategory.
+		Query().
+		Order(ent.Asc(templatecategory.FieldName)).
+		All(db.Ctx)
+
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("Error closing rows: %v", closeErr)
-		}
-	}()
 
-	var categories []TemplateCategory
-	for rows.Next() {
-		var c TemplateCategory
-		err := rows.Scan(&c.ID, &c.Name, &c.Description)
-		if err != nil {
-			return nil, err
+	result := make([]TemplateCategory, len(categories))
+	for i, c := range categories {
+		result[i] = TemplateCategory{
+			ID:   c.ID,
+			Name: c.Name,
 		}
 
-		categories = append(categories, c)
+		// Handle nullable field
+		if c.Description != nil {
+			result[i].Description = *c.Description
+		}
 	}
 
-	return categories, nil
+	return result, nil
 }
 
 // CreateTemplate adds a new template to the database
-func CreateTemplate(name, categoryID, content, format, createdBy string) (string, error) {
-	// Create new template in database
-	templateID := uuid.New().String()
-	_, err := db.DB.Exec(`
-		INSERT INTO template_service.template 
-		(id, name, category_id, content, format, version, is_active, created_by) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		templateID, name, categoryID, content, format, 1, true, createdBy)
+func CreateTemplate(name, categoryIDStr, content, format, createdBy string) (string, error) {
+	categoryID, err := strconv.Atoi(categoryIDStr)
+	if err != nil {
+		return "", err
+	}
+
+	// Create template
+	t, err := db.EntClient.Template.
+		Create().
+		SetName(name).
+		SetCategoryID(categoryID).
+		SetContent(content).
+		SetFormat(format).
+		SetVersion(1).
+		SetIsActive(true).
+		SetCreatedBy(createdBy).
+		Save(db.Ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	return templateID, nil
+	return t.ID.String(), nil
 }
 
 // AddTemplateVariable adds a variable to a template
 func AddTemplateVariable(templateID, variableName, description, defaultValue string, isRequired bool) error {
-	_, err := db.DB.Exec(`
-		INSERT INTO template_service.template_variable 
-		(template_id, variable_name, description, default_value, is_required) 
-		VALUES ($1, $2, $3, $4, $5)`,
-		templateID, variableName, description, defaultValue, isRequired)
-
-	return err
-}
-
-// UpdateTemplate updates an existing template
-func UpdateTemplate(id, name, categoryID, content, format, updatedBy string) error {
-	_, err := db.DB.Exec(`
-		UPDATE template_service.template 
-		SET name = $1, category_id = $2, content = $3, format = $4, 
-		    updated_by = $5, updated_at = CURRENT_TIMESTAMP, version = version + 1
-		WHERE id = $6`,
-		name, categoryID, content, format, updatedBy, id)
-
+	tid, err := uuid.Parse(templateID)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	create := db.EntClient.TemplateVariable.
+		Create().
+		SetVariableName(variableName).
+		SetIsRequired(isRequired).
+		SetVariableType("string"). // Default
+		SetTemplateID(tid)
+
+	// Set nullable fields only if they have values
+	if description != "" {
+		create.SetDescription(description)
+	}
+
+	if defaultValue != "" {
+		create.SetDefaultValue(defaultValue)
+	}
+
+	_, err = create.Save(db.Ctx)
+	return err
+}
+
+// UpdateTemplate updates an existing template
+func UpdateTemplate(id, name, categoryIDStr, content, format, updatedBy string) error {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	categoryID, err := strconv.Atoi(categoryIDStr)
+	if err != nil {
+		return err
+	}
+
+	// Get current version
+	t, err := db.EntClient.Template.Get(db.Ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	// Update template
+	_, err = db.EntClient.Template.
+		UpdateOne(t).
+		SetName(name).
+		SetCategoryID(categoryID).
+		SetContent(content).
+		SetFormat(format).
+		SetUpdatedBy(updatedBy).
+		SetVersion(t.Version + 1).
+		Save(db.Ctx)
+
+	return err
 }
 
 // DeleteTemplate marks a template as inactive
 func DeleteTemplate(id string) error {
-	_, err := db.DB.Exec(`
-		UPDATE template_service.template 
-		SET is_active = false, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $1`,
-		id)
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.EntClient.Template.
+		UpdateOneID(uid).
+		SetIsActive(false).
+		Save(db.Ctx)
 
 	return err
 }
